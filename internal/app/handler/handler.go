@@ -10,7 +10,7 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 )
 
-func MainHandler(storage *storage.Storage) http.Handler {
+func MainHandler(storage storage.Repositories) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if req.Method == http.MethodGet {
 			getHandler(res, req, storage)
@@ -22,7 +22,7 @@ func MainHandler(storage *storage.Storage) http.Handler {
 	})
 }
 
-func getHandler(res http.ResponseWriter, req *http.Request, storage *storage.Storage) {
+func getHandler(res http.ResponseWriter, req *http.Request, storage storage.Repositories) {
 	shortURL := strings.TrimLeft(req.URL.Path, "/")
 
 	if shortURL == "" {
@@ -30,7 +30,7 @@ func getHandler(res http.ResponseWriter, req *http.Request, storage *storage.Sto
 		return
 	}
 
-	url, err := storage.ReadByshortURL(shortURL)
+	url, err := storage.ReadByShortURL(shortURL)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -40,9 +40,15 @@ func getHandler(res http.ResponseWriter, req *http.Request, storage *storage.Sto
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func postHandler(res http.ResponseWriter, req *http.Request, storage *storage.Storage) {
+func postHandler(res http.ResponseWriter, req *http.Request, storage storage.Repositories) {
 	body, err := io.ReadAll(req.Body)
+
 	if err != nil {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if string(body) == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}

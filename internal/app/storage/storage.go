@@ -2,6 +2,12 @@ package storage
 
 import "errors"
 
+type Repositories interface {
+	ReadByURL(url string) string
+	ReadByShortURL(shortURL string) (string, error)
+	Add(shortURL string, url string) bool
+}
+
 type Storage struct {
 	storage map[string]string
 }
@@ -25,7 +31,7 @@ func (s *Storage) ReadByURL(url string) string {
 	return shortURL
 }
 
-func (s *Storage) ReadByshortURL(shortURL string) (string, error) {
+func (s *Storage) ReadByShortURL(shortURL string) (string, error) {
 	for key, value := range s.storage {
 		if value == shortURL {
 			return key, nil
