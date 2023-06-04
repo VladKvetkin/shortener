@@ -4,27 +4,20 @@ import (
 	"net/http"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
-	"github.com/VladKvetkin/shortener/internal/app/router"
 )
 
 type Server struct {
-	config config.Config
-	mux    *http.ServeMux
-	router router.Router
+	config  config.Config
+	handler http.Handler
 }
 
-func NewServer(config config.Config, router router.Router) *Server {
+func NewServer(config config.Config, handler http.Handler) *Server {
 	return &Server{
-		mux:    http.NewServeMux(),
-		config: config,
-		router: router,
+		config:  config,
+		handler: handler,
 	}
 }
 
 func (s *Server) Start() error {
-	for pattern, handler := range s.router.Routes {
-		s.mux.Handle(pattern, handler)
-	}
-
-	return http.ListenAndServe(s.config.GetAddress(), s.mux)
+	return http.ListenAndServe(s.config.GetAddress(), s.handler)
 }

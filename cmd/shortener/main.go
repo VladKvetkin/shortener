@@ -1,10 +1,7 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/VladKvetkin/shortener/internal/app/config"
-	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/server"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
@@ -12,14 +9,8 @@ import (
 
 func main() {
 	config := config.NewConfig("localhost", "8080")
-
 	storage := storage.NewStorage()
-
-	router := router.Router{
-		Routes: map[string]http.Handler{
-			"/": handler.MainHandler(storage),
-		},
-	}
+	router := router.NewRouter(storage)
 
 	server := server.NewServer(config, router)
 

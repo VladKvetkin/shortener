@@ -1,4 +1,4 @@
-package handler
+package router
 
 import (
 	"io"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMainHandlerPost(t *testing.T) {
+func TestRouterPostHandler(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
@@ -89,7 +89,7 @@ func TestMainHandlerPost(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			handler := MainHandler(tt.storage)
+			handler := NewRouter(tt.storage)
 
 			handler.ServeHTTP(recorder, request)
 
@@ -108,7 +108,7 @@ func TestMainHandlerPost(t *testing.T) {
 	}
 }
 
-func TestMainHandlerGet(t *testing.T) {
+func TestRouterGetHandler(t *testing.T) {
 	type want struct {
 		location   string
 		statusCode int
@@ -133,9 +133,9 @@ func TestMainHandlerGet(t *testing.T) {
 				"Content-Type": "text/plain",
 			},
 			want: want{
-				statusCode: http.StatusBadRequest,
+				statusCode: http.StatusMethodNotAllowed,
 				location:   "",
-				body:       regexp.MustCompile(`^Invalid request\s*$`),
+				body:       regexp.MustCompile(`^$`),
 			},
 		},
 		{
@@ -181,7 +181,7 @@ func TestMainHandlerGet(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			handler := MainHandler(tt.storage)
+			handler := NewRouter(tt.storage)
 
 			handler.ServeHTTP(recorder, request)
 
