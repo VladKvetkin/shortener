@@ -8,13 +8,17 @@ import (
 )
 
 func main() {
-	config := config.NewConfig()
+	config, err := config.NewConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	storage := storage.NewStorage()
 	router := router.NewRouter(storage, config)
 
 	server := server.NewServer(config, router.Router)
 
-	err := server.Start()
+	err = server.Start()
 	if err != nil {
 		panic(err)
 	}
