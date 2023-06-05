@@ -15,7 +15,11 @@ type Config struct {
 }
 
 func NewConfig() Config {
-	config := Config{}
+	config := Config{
+		Host:                "localhost",
+		Port:                8080,
+		BaseShortURLAddress: "http://localhost:8080/",
+	}
 
 	flag.Func("a", "HTTP server address", func(flagValue string) error {
 		splitAddress := strings.Split(flagValue, ":")
