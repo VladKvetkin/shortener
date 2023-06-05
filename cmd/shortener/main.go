@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	config := config.NewConfig("localhost", "8080")
+	config := config.NewConfig()
 	storage := storage.NewStorage()
-	router := router.NewRouter(storage)
+	router := router.NewRouter(storage, config)
 
-	server := server.NewServer(config, router)
+	server := server.NewServer(config, router.Router)
 
 	err := server.Start()
 	if err != nil {

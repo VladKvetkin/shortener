@@ -7,17 +7,17 @@ import (
 )
 
 type Server struct {
-	config  config.Config
-	handler http.Handler
+	config config.Config
+	router http.Handler
 }
 
-func NewServer(config config.Config, handler http.Handler) *Server {
+func NewServer(config config.Config, router http.Handler) *Server {
 	return &Server{
-		config:  config,
-		handler: handler,
+		config: config,
+		router: router,
 	}
 }
 
 func (s *Server) Start() error {
-	return http.ListenAndServe(s.config.GetAddress(), s.handler)
+	return http.ListenAndServe(s.config.GetAddress(), s.router)
 }

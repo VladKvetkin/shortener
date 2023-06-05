@@ -4,36 +4,45 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
+	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
 )
 
-func NewRouter(storage storage.Repositories) http.Handler {
-	router := chi.NewRouter()
+type Router struct {
+	Router  *chi.Mux
+	storage storage.Repositories
+	config  config.Config
+}
 
-	router.Route("/", func(r chi.Router) {
-		r.Post("/", func(writer http.ResponseWriter, request *http.Request) {
-			postHandler(writer, request, storage)
-		})
+func NewRouter(storage storage.Repositories, config config.Config) *Router {
+	chiRouter := chi.NewRouter()
 
-		r.Get("/{id}", func(writer http.ResponseWriter, request *http.Request) {
-			getHandler(writer, request, storage)
-		})
+	router := &Router{
+		Router:  chiRouter,
+		config:  config,
+		storage: storage,
+	}
+
+	chiRouter.Route("/", func(r chi.Router) {
+		r.Post("/", router.PostHandler)
+		r.Get("/{id}", router.GetHandler)
 	})
 
 	return router
 }
 
-func getHandler(res http.ResponseWriter, req *http.Request, storage storage.Repositories) {
+func (r *Router) GetHandler(res http.ResponseWriter, req *http.Request) {
 	shortURL := chi.URLParam(req, "id")
 	if shortURL == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	url, err := storage.ReadByShortURL(shortURL)
+	url, err := r.storage.ReadByShortURL(shortURL)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -43,7 +52,7 @@ func getHandler(res http.ResponseWriter, req *http.Request, storage storage.Repo
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func postHandler(res http.ResponseWriter, req *http.Request, storage storage.Repositories) {
+func (r *Router) PostHandler(res http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
@@ -55,18 +64,15 @@ func postHandler(res http.ResponseWriter, req *http.Request, storage storage.Rep
 		return
 	}
 
-	shortURL := storage.ReadByURL(string(body))
+	shortURL := r.storage.ReadByURL(string(body))
 	if shortURL == "" {
 		shortURL = shortener.CreateShortURL()
-		storage.Add(shortURL, string(body))
+		r.storage.Add(shortURL, string(body))
 	}
 
-	scheme := "http"
-	if req.TLS != nil {
-		scheme = "https"
-	}
+	baseShortURLAddress := strings.TrimRight(r.config.BaseShortURLAddress, "/")
 
 	res.Header().Set("Content-type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("%s://%s/%s", scheme, req.Host, shortURL)))
+	res.Write([]byte(fmt.Sprintf("%s/%s", baseShortURLAddress, shortURL)))
 }

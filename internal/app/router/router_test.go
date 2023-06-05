@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +27,7 @@ func TestRouterPostHandler(t *testing.T) {
 		method  string
 		body    string
 		storage storage.Repositories
+		config  config.Config
 		headers map[string]string
 		want    want
 	}{
@@ -35,6 +37,11 @@ func TestRouterPostHandler(t *testing.T) {
 			method:  http.MethodPost,
 			body:    "",
 			storage: storage.NewStorage(),
+			config: config.Config{
+				Host:                "localhost",
+				Port:                8080,
+				BaseShortURLAddress: "http://localhost/",
+			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
@@ -50,13 +57,18 @@ func TestRouterPostHandler(t *testing.T) {
 			method:  http.MethodPost,
 			body:    "https://practicum.yandex.ru/",
 			storage: storage.NewStorage(),
+			config: config.Config{
+				Host:                "localhost",
+				Port:                8080,
+				BaseShortURLAddress: "http://localhost/",
+			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				body:        regexp.MustCompile(`^http://example.com/.{8}$`),
+				body:        regexp.MustCompile(`^http://localhost/.{8}$`),
 			},
 		},
 		{
@@ -69,13 +81,18 @@ func TestRouterPostHandler(t *testing.T) {
 				storage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
 				return storage
 			}(),
+			config: config.Config{
+				Host:                "localhost",
+				Port:                8080,
+				BaseShortURLAddress: "http://localhost/",
+			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				body:        regexp.MustCompile(`^http://example.com/EwHXdJfB$`),
+				body:        regexp.MustCompile(`^http://localhost/EwHXdJfB$`),
 			},
 		},
 	}
@@ -89,9 +106,9 @@ func TestRouterPostHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			handler := NewRouter(tt.storage)
+			handler := NewRouter(tt.storage, tt.config)
 
-			handler.ServeHTTP(recorder, request)
+			handler.Router.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
 
@@ -121,6 +138,7 @@ func TestRouterGetHandler(t *testing.T) {
 		method  string
 		body    string
 		storage storage.Repositories
+		config  config.Config
 		headers map[string]string
 		want    want
 	}{
@@ -129,6 +147,11 @@ func TestRouterGetHandler(t *testing.T) {
 			request: "/",
 			method:  http.MethodGet,
 			storage: storage.NewStorage(),
+			config: config.Config{
+				Host:                "localhost",
+				Port:                8080,
+				BaseShortURLAddress: "http://localhost/",
+			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
@@ -143,6 +166,11 @@ func TestRouterGetHandler(t *testing.T) {
 			request: "/EwHXdJfB",
 			method:  http.MethodGet,
 			storage: storage.NewStorage(),
+			config: config.Config{
+				Host:                "localhost",
+				Port:                8080,
+				BaseShortURLAddress: "http://localhost/",
+			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
@@ -162,6 +190,11 @@ func TestRouterGetHandler(t *testing.T) {
 				storage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
 				return storage
 			}(),
+			config: config.Config{
+				Host:                "localhost",
+				Port:                8080,
+				BaseShortURLAddress: "http://localhost/",
+			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
 			},
@@ -181,9 +214,9 @@ func TestRouterGetHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			handler := NewRouter(tt.storage)
+			handler := NewRouter(tt.storage, tt.config)
 
-			handler.ServeHTTP(recorder, request)
+			handler.Router.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
 
