@@ -24,13 +24,10 @@ func NewConfig() (Config, error) {
 
 	address, ok := os.LookupEnv("SERVER_ADDRESS")
 	if ok {
-		host, port, err := config.parseAddress(address)
+		err := config.setAddress(address)
 		if err != nil {
 			return config, err
 		}
-
-		config.Host = host
-		config.Port = port
 	}
 
 	flag.Func("a", "HTTP server address", func(address string) error {
@@ -38,25 +35,15 @@ func NewConfig() (Config, error) {
 			return nil
 		}
 
-		host, port, err := config.parseAddress(address)
-		if err != nil {
-			return err
-		}
-
-		config.Host = host
-		config.Port = port
-
-		return nil
+		return config.setAddress(address)
 	})
 
 	baseAddressForShortURL, ok := os.LookupEnv("BASE_URL")
 	if ok {
-		_, err := url.ParseRequestURI(baseAddressForShortURL)
+		err := config.setBaseShortURL(baseAddressForShortURL)
 		if err != nil {
-			return config, ErrorInvalidURLAddress
+			return config, err
 		}
-
-		config.BaseShortURLAddress = baseAddressForShortURL
 	}
 
 	flag.Func("b", "Base address for short URL", func(flagValue string) error {
@@ -64,31 +51,51 @@ func NewConfig() (Config, error) {
 			return nil
 		}
 
-		_, err := url.ParseRequestURI(flagValue)
-		if err != nil {
-			return ErrorInvalidURLAddress
-		}
-
-		config.BaseShortURLAddress = flagValue
-
-		return nil
+		return config.setBaseShortURL(flagValue)
 	})
 
 	flag.Parse()
 
-	if config.Host == "" {
-		config.Host = "localhost"
-	}
-
-	if config.Port == 0 {
-		config.Port = 8080
-	}
-
-	if config.BaseShortURLAddress == "" {
-		config.BaseShortURLAddress = "http://localhost:8080/"
-	}
+	config.setDefaultValues()
 
 	return config, nil
+}
+
+func (c *Config) setAddress(address string) error {
+	host, port, err := c.parseAddress(address)
+	if err != nil {
+		return err
+	}
+
+	c.Host = host
+	c.Port = port
+
+	return nil
+}
+
+func (c *Config) setBaseShortURL(baseShortURL string) error {
+	_, err := url.ParseRequestURI(baseShortURL)
+	if err != nil {
+		return ErrorInvalidURLAddress
+	}
+
+	c.BaseShortURLAddress = baseShortURL
+
+	return nil
+}
+
+func (c *Config) setDefaultValues() {
+	if c.Host == "" {
+		c.Host = "localhost"
+	}
+
+	if c.Port == 0 {
+		c.Port = 8080
+	}
+
+	if c.BaseShortURLAddress == "" {
+		c.BaseShortURLAddress = "http://localhost:8080/"
+	}
 }
 
 func (c *Config) GetAddress() string {

@@ -2,6 +2,10 @@ package storage
 
 import "errors"
 
+var (
+	ErrShortURLNotExists = errors.New("short url not exists")
+)
+
 type Repositories interface {
 	ReadByURL(url string) string
 	ReadByShortURL(shortURL string) (string, error)
@@ -11,10 +15,6 @@ type Repositories interface {
 type Storage struct {
 	storage map[string]string
 }
-
-var (
-	ErrShortURLNotExists = errors.New("short url not exists")
-)
 
 func NewStorage() *Storage {
 	return &Storage{
