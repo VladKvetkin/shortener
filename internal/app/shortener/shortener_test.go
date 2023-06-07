@@ -1,6 +1,7 @@
 package shortener
 
 import (
+	"math/rand"
 	"regexp"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestCreateShortURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Regexp(t, tt.want, CreateShortURL())
+			assert.Regexp(t, tt.want, CreateShortURL(rand.Uint64()))
 		})
 	}
 }

@@ -1,4 +1,4 @@
-package router
+package handler_test
 
 import (
 	"io"
@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
+	"github.com/VladKvetkin/shortener/internal/app/handler"
+	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,9 +40,8 @@ func TestRouterPostHandler(t *testing.T) {
 			body:    "",
 			storage: storage.NewStorage(),
 			config: config.Config{
-				Host:                "localhost",
-				Port:                8080,
-				BaseShortURLAddress: "http://localhost/",
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
 			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
@@ -58,9 +59,8 @@ func TestRouterPostHandler(t *testing.T) {
 			body:    "https://practicum.yandex.ru/",
 			storage: storage.NewStorage(),
 			config: config.Config{
-				Host:                "localhost",
-				Port:                8080,
-				BaseShortURLAddress: "http://localhost/",
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
 			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
@@ -82,9 +82,8 @@ func TestRouterPostHandler(t *testing.T) {
 				return storage
 			}(),
 			config: config.Config{
-				Host:                "localhost",
-				Port:                8080,
-				BaseShortURLAddress: "http://localhost/",
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
 			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
@@ -106,9 +105,9 @@ func TestRouterPostHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			handler := NewRouter(tt.storage, tt.config)
+			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config))
 
-			handler.Router.ServeHTTP(recorder, request)
+			router.Router.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
 
@@ -148,9 +147,8 @@ func TestRouterGetHandler(t *testing.T) {
 			method:  http.MethodGet,
 			storage: storage.NewStorage(),
 			config: config.Config{
-				Host:                "localhost",
-				Port:                8080,
-				BaseShortURLAddress: "http://localhost/",
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
 			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
@@ -167,9 +165,8 @@ func TestRouterGetHandler(t *testing.T) {
 			method:  http.MethodGet,
 			storage: storage.NewStorage(),
 			config: config.Config{
-				Host:                "localhost",
-				Port:                8080,
-				BaseShortURLAddress: "http://localhost/",
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
 			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
@@ -191,9 +188,8 @@ func TestRouterGetHandler(t *testing.T) {
 				return storage
 			}(),
 			config: config.Config{
-				Host:                "localhost",
-				Port:                8080,
-				BaseShortURLAddress: "http://localhost/",
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
 			},
 			headers: map[string]string{
 				"Content-Type": "text/plain",
@@ -214,9 +210,9 @@ func TestRouterGetHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			handler := NewRouter(tt.storage, tt.config)
+			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config))
 
-			handler.Router.ServeHTTP(recorder, request)
+			router.Router.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
 

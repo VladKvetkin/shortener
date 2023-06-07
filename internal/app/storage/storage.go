@@ -7,9 +7,9 @@ var (
 )
 
 type Repositories interface {
-	ReadByURL(url string) string
+	ReadByURL(url string) (string, bool, error)
 	ReadByShortURL(shortURL string) (string, error)
-	Add(shortURL string, url string) bool
+	Add(shortURL string, url string) error
 }
 
 type Storage struct {
@@ -22,27 +22,27 @@ func NewStorage() *Storage {
 	}
 }
 
-func (s *Storage) ReadByURL(url string) string {
-	shortURL, ok := s.storage[url]
-	if !ok {
-		return ""
-	}
-
-	return shortURL
-}
-
-func (s *Storage) ReadByShortURL(shortURL string) (string, error) {
+func (s *Storage) ReadByURL(url string) (string, bool, error) {
 	for key, value := range s.storage {
-		if value == shortURL {
-			return key, nil
+		if value == url {
+			return key, true, nil
 		}
 	}
 
-	return "", ErrShortURLNotExists
+	return "", false, nil
 }
 
-func (s *Storage) Add(shortURL string, url string) bool {
-	s.storage[url] = shortURL
+func (s *Storage) ReadByShortURL(shortURL string) (string, error) {
+	url, ok := s.storage[shortURL]
+	if !ok {
+		return "", ErrShortURLNotExists
+	}
 
-	return true
+	return url, nil
+}
+
+func (s *Storage) Add(shortURL string, url string) error {
+	s.storage[shortURL] = url
+
+	return nil
 }
