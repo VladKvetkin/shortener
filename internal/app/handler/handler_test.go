@@ -23,6 +23,9 @@ func TestRouterPostHandler(t *testing.T) {
 		body        *regexp.Regexp
 	}
 
+	shortUrlAlreadyExistStorage := storage.NewStorage()
+	shortUrlAlreadyExistStorage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
+
 	tests := []struct {
 		name    string
 		request string
@@ -76,11 +79,7 @@ func TestRouterPostHandler(t *testing.T) {
 			request: "/",
 			method:  http.MethodPost,
 			body:    "https://practicum.yandex.ru/",
-			storage: func() storage.Storage {
-				storage := storage.NewStorage()
-				storage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
-				return storage
-			}(),
+			storage: shortUrlAlreadyExistStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -130,6 +129,9 @@ func TestRouterGetHandler(t *testing.T) {
 		statusCode int
 		body       *regexp.Regexp
 	}
+
+	shortUrlAlreadyExistStorage := storage.NewStorage()
+	shortUrlAlreadyExistStorage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
 
 	tests := []struct {
 		name    string
@@ -182,11 +184,7 @@ func TestRouterGetHandler(t *testing.T) {
 			request: "/EwHXdJfB",
 			method:  "GET",
 			body:    "",
-			storage: func() storage.Storage {
-				storage := storage.NewStorage()
-				storage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
-				return storage
-			}(),
+			storage: shortUrlAlreadyExistStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
