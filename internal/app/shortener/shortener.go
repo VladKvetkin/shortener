@@ -1,17 +1,21 @@
 package shortener
 
+import "math/rand"
+
 const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func CreateShortURL(randomNumber uint64) string {
-	shortURLLenght := 8
+func CreateId() string {
+	randomNumber := rand.Uint64()
+
+	idLength := 8
 	length := len(alphabet)
-	shortURL := make([]byte, shortURLLenght)
+	uniqueId := make([]byte, idLength)
 	i := 0
 
-	for ; i < shortURLLenght; randomNumber = randomNumber / uint64(length) {
-		shortURL[i] = alphabet[(randomNumber % uint64(length))]
+	for ; i < idLength; randomNumber = randomNumber / uint64(length) {
+		uniqueId[i] = alphabet[(randomNumber % uint64(length))]
 		i++
 	}
 
-	return string(shortURL)
+	return string(uniqueId)
 }

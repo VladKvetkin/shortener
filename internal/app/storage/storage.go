@@ -3,26 +3,26 @@ package storage
 import "errors"
 
 var (
-	ErrShortURLNotExists = errors.New("short url not exists")
+	ErrIdNotExists = errors.New("id not exists")
 )
 
-type Repositories interface {
+type Storage interface {
 	ReadByURL(url string) (string, bool, error)
-	ReadByShortURL(shortURL string) (string, error)
-	Add(shortURL string, url string) error
+	ReadById(id string) (string, error)
+	Add(id string, url string) error
 }
 
-type Storage struct {
+type MemStorage struct {
 	storage map[string]string
 }
 
-func NewStorage() *Storage {
-	return &Storage{
+func NewStorage() Storage {
+	return &MemStorage{
 		storage: make(map[string]string),
 	}
 }
 
-func (s *Storage) ReadByURL(url string) (string, bool, error) {
+func (s *MemStorage) ReadByURL(url string) (string, bool, error) {
 	for key, value := range s.storage {
 		if value == url {
 			return key, true, nil
@@ -32,17 +32,17 @@ func (s *Storage) ReadByURL(url string) (string, bool, error) {
 	return "", false, nil
 }
 
-func (s *Storage) ReadByShortURL(shortURL string) (string, error) {
-	url, ok := s.storage[shortURL]
+func (s *MemStorage) ReadById(id string) (string, error) {
+	url, ok := s.storage[id]
 	if !ok {
-		return "", ErrShortURLNotExists
+		return "", ErrIdNotExists
 	}
 
 	return url, nil
 }
 
-func (s *Storage) Add(shortURL string, url string) error {
-	s.storage[shortURL] = url
+func (s *MemStorage) Add(id string, url string) error {
+	s.storage[id] = url
 
 	return nil
 }

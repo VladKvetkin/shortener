@@ -28,7 +28,7 @@ func TestRouterPostHandler(t *testing.T) {
 		request string
 		method  string
 		body    string
-		storage storage.Repositories
+		storage storage.Storage
 		config  config.Config
 		headers map[string]string
 		want    want
@@ -76,7 +76,7 @@ func TestRouterPostHandler(t *testing.T) {
 			request: "/",
 			method:  http.MethodPost,
 			body:    "https://practicum.yandex.ru/",
-			storage: func() *storage.Storage {
+			storage: func() storage.Storage {
 				storage := storage.NewStorage()
 				storage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
 				return storage
@@ -136,7 +136,7 @@ func TestRouterGetHandler(t *testing.T) {
 		request string
 		method  string
 		body    string
-		storage storage.Repositories
+		storage storage.Storage
 		config  config.Config
 		headers map[string]string
 		want    want
@@ -182,7 +182,7 @@ func TestRouterGetHandler(t *testing.T) {
 			request: "/EwHXdJfB",
 			method:  "GET",
 			body:    "",
-			storage: func() *storage.Storage {
+			storage: func() storage.Storage {
 				storage := storage.NewStorage()
 				storage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
 				return storage

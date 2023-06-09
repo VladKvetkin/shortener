@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
@@ -13,11 +12,11 @@ import (
 )
 
 type Handler struct {
-	storage storage.Repositories
+	storage storage.Storage
 	config  config.Config
 }
 
-func NewHandler(storage storage.Repositories, config config.Config) *Handler {
+func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	return &Handler{
 		config:  config,
 		storage: storage,
@@ -25,13 +24,13 @@ func NewHandler(storage storage.Repositories, config config.Config) *Handler {
 }
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
-	shortURL := chi.URLParam(req, "id")
-	if shortURL == "" {
+	id := chi.URLParam(req, "id")
+	if id == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	url, err := h.storage.ReadByShortURL(shortURL)
+	url, err := h.storage.ReadById(id)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -56,18 +55,18 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	shortURL, ok, err := h.storage.ReadByURL(stringBody)
+	id, ok, err := h.storage.ReadByURL(stringBody)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	if !ok {
-		shortURL = shortener.CreateShortURL(rand.Uint64())
-		h.storage.Add(shortURL, stringBody)
+		id = shortener.CreateId()
+		h.storage.Add(id, stringBody)
 	}
 
 	res.Header().Set("Content-type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, shortURL)))
+	res.Write([]byte(fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)))
 }

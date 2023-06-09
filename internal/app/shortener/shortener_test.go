@@ -1,14 +1,13 @@
 package shortener
 
 import (
-	"math/rand"
 	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateShortURL(t *testing.T) {
+func TestCreateId(t *testing.T) {
 	tests := []struct {
 		name string
 		want *regexp.Regexp
@@ -20,7 +19,7 @@ func TestCreateShortURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Regexp(t, tt.want, CreateShortURL(rand.Uint64()))
+			assert.Regexp(t, tt.want, CreateId())
 		})
 	}
 }

@@ -18,15 +18,8 @@ func NewConfig() (Config, error) {
 		BaseShortURLAddress: "http://localhost:8080/",
 	}
 
-	flag.Func("a", "HTTP server address", func(address string) error {
-		config.Address = address
-		return nil
-	})
-
-	flag.Func("b", "Base address for short URL", func(baseShortURLAddress string) error {
-		config.BaseShortURLAddress = baseShortURLAddress
-		return nil
-	})
+	flag.StringVar(&config.Address, "a", "localhost:8080", "HTTP server address")
+	flag.StringVar(&config.BaseShortURLAddress, "b", "http://localhost:8080/", "Base address for short URL")
 
 	flag.Parse()
 
