@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateId(t *testing.T) {
+func TestCreateID(t *testing.T) {
 	tests := []struct {
 		name string
 		want *regexp.Regexp
@@ -19,7 +19,7 @@ func TestCreateId(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Regexp(t, tt.want, CreateId())
+			assert.Regexp(t, tt.want, CreateID())
 		})
 	}
 }

@@ -4,18 +4,18 @@ import "math/rand"
 
 const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func CreateId() string {
+func CreateID() string {
 	randomNumber := rand.Uint64()
 
 	idLength := 8
 	length := len(alphabet)
-	uniqueId := make([]byte, idLength)
+	id := make([]byte, idLength)
 	i := 0
 
 	for ; i < idLength; randomNumber = randomNumber / uint64(length) {
-		uniqueId[i] = alphabet[(randomNumber % uint64(length))]
+		id[i] = alphabet[(randomNumber % uint64(length))]
 		i++
 	}
 
-	return string(uniqueId)
+	return string(id)
 }

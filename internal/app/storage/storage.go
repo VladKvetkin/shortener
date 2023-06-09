@@ -3,12 +3,12 @@ package storage
 import "errors"
 
 var (
-	ErrIdNotExists = errors.New("id not exists")
+	ErrIDNotExists = errors.New("id not exists")
 )
 
 type Storage interface {
 	ReadByURL(url string) (string, bool, error)
-	ReadById(id string) (string, error)
+	ReadByID(id string) (string, error)
 	Add(id string, url string) error
 }
 
@@ -32,10 +32,10 @@ func (s *MemStorage) ReadByURL(url string) (string, bool, error) {
 	return "", false, nil
 }
 
-func (s *MemStorage) ReadById(id string) (string, error) {
+func (s *MemStorage) ReadByID(id string) (string, error) {
 	url, ok := s.storage[id]
 	if !ok {
-		return "", ErrIdNotExists
+		return "", ErrIDNotExists
 	}
 
 	return url, nil

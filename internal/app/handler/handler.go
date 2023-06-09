@@ -30,7 +30,7 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url, err := h.storage.ReadById(id)
+	url, err := h.storage.ReadByID(id)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -62,7 +62,7 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if !ok {
-		id = shortener.CreateId()
+		id = shortener.CreateID()
 		h.storage.Add(id, stringBody)
 	}
 
