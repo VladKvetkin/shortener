@@ -55,14 +55,14 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, ok, err := h.storage.ReadByURL(stringBody)
+	id, err := shortener.CreateID(stringBody)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	if !ok {
-		id = shortener.CreateID()
+	_, err = h.storage.ReadByID(id)
+	if err != nil {
 		h.storage.Add(id, stringBody)
 	}
 

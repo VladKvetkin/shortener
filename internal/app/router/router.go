@@ -1,7 +1,10 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/VladKvetkin/shortener/internal/app/handler"
+	"github.com/VladKvetkin/shortener/internal/app/logger"
 	"github.com/go-chi/chi"
 )
 
@@ -19,8 +22,8 @@ func NewRouter(handler *handler.Handler) *Router {
 	}
 
 	chiRouter.Route("/", func(r chi.Router) {
-		r.Post("/", handler.PostHandler)
-		r.Get("/{id}", handler.GetHandler)
+		r.Post("/", logger.WithLogging(http.HandlerFunc(handler.PostHandler)))
+		r.Get("/{id}", logger.WithLogging(http.HandlerFunc(handler.GetHandler)))
 	})
 
 	return router

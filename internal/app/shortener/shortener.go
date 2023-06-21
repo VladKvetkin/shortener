@@ -1,21 +1,16 @@
 package shortener
 
-import "math/rand"
+import (
+	"crypto/sha256"
+	"encoding/base64"
+)
 
-const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+func CreateID(url string) (string, error) {
+	hasher := sha256.New()
+	hasher.Write([]byte(url))
+	hash := hasher.Sum(nil)
 
-func CreateID() string {
-	randomNumber := rand.Uint64()
+	id := base64.StdEncoding.EncodeToString(hash)
 
-	idLength := 8
-	length := len(alphabet)
-	id := make([]byte, idLength)
-	i := 0
-
-	for ; i < idLength; randomNumber = randomNumber / uint64(length) {
-		id[i] = alphabet[(randomNumber % uint64(length))]
-		i++
-	}
-
-	return string(id)
+	return id[:8], nil
 }

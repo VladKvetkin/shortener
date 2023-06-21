@@ -24,7 +24,7 @@ func TestRouterPostHandler(t *testing.T) {
 	}
 
 	shortURLAlreadyExistStorage := storage.NewStorage()
-	shortURLAlreadyExistStorage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
+	shortURLAlreadyExistStorage.Add("QrPnX5IU", "https://practicum.yandex.ru/")
 
 	tests := []struct {
 		name    string
@@ -90,7 +90,7 @@ func TestRouterPostHandler(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				body:        regexp.MustCompile(`^http://localhost/EwHXdJfB$`),
+				body:        regexp.MustCompile(`^http://localhost/QrPnX5IU`),
 			},
 		},
 	}
