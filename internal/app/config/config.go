@@ -3,13 +3,14 @@ package config
 import (
 	"flag"
 	"net/url"
-	"os"
 	"strings"
+
+	"github.com/caarlos0/env/v8"
 )
 
 type Config struct {
-	Address             string
-	BaseShortURLAddress string
+	Address             string `env:"SERVER_ADDRESS"`
+	BaseShortURLAddress string `env:"BASE_URL"`
 }
 
 func NewConfig() (Config, error) {
@@ -23,16 +24,11 @@ func NewConfig() (Config, error) {
 
 	flag.Parse()
 
-	if address, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
-		config.Address = address
+	if err := env.Parse(&config); err != nil {
+		return Config{}, err
 	}
 
-	if baseAddressForShortURL, ok := os.LookupEnv("BASE_URL"); ok {
-		config.BaseShortURLAddress = baseAddressForShortURL
-	}
-
-	err := config.validateConfig()
-	if err != nil {
+	if err := config.validateConfig(); err != nil {
 		return Config{}, err
 	}
 

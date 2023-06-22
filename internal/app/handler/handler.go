@@ -66,8 +66,7 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = h.storage.ReadByID(id)
-	if err != nil {
+	if _, err = h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
 			h.storage.Add(id, stringBody)
 		} else {
@@ -78,7 +77,7 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-type", "text/plain")
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)))
+	res.Write([]byte(h.formatShortURL(id)))
 }
 
 func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) {
@@ -92,6 +91,8 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
+	fmt.Println(requestModel.URL)
+
 	if requestModel.URL == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -103,8 +104,7 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	_, err = h.storage.ReadByID(id)
-	if err != nil {
+	if _, err = h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
 			h.storage.Add(id, requestModel.URL)
 		} else {
@@ -114,7 +114,7 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 	}
 
 	responseModel := models.APIShortenResponse{
-		Result: fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id),
+		Result: h.formatShortURL(id),
 	}
 
 	res.Header().Set("Content-Type", "application/json")
@@ -125,4 +125,8 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) formatShortURL(id string) string {
+	return fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)
 }

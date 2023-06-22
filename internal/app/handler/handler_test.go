@@ -228,5 +228,105 @@ func TestRouterGetHandler(t *testing.T) {
 }
 
 func TestRouterAPIShortenHandler(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		body        string
+	}
 
+	tests := []struct {
+		name    string
+		request string
+		method  string
+		body    string
+		storage storage.Storage
+		config  config.Config
+		headers map[string]string
+		want    want
+	}{
+		{
+			name:    "post request without body",
+			request: "/api/shorten",
+			method:  http.MethodPost,
+			storage: storage.NewStorage(),
+			config: config.Config{
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
+			},
+			headers: map[string]string{
+				"Content-Type": "text/plain; charset=utf-8",
+			},
+			body: "",
+			want: want{
+				statusCode:  http.StatusInternalServerError,
+				contentType: "text/plain; charset=utf-8",
+				body:        "Cannot decode request JSON body\n",
+			},
+		},
+		{
+			name:    "post request without URL in body",
+			request: "/api/shorten",
+			method:  http.MethodPost,
+			storage: storage.NewStorage(),
+			config: config.Config{
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
+			},
+			headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+			body: `{"url": ""}`,
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "text/plain; charset=utf-8",
+				body:        "Invalid request\n",
+			},
+		},
+		{
+			name:    "post request with URL",
+			request: "/api/shorten",
+			method:  http.MethodPost,
+			storage: storage.NewStorage(),
+			config: config.Config{
+				Address:             "localhost:8080",
+				BaseShortURLAddress: "http://localhost",
+			},
+			headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+			body: `{"url": "https://practicum.yandex.ru"}`,
+			want: want{
+				statusCode:  http.StatusCreated,
+				contentType: "application/json",
+				body: `{"result":"http://localhost/ipkjUVtE"}
+`,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(tt.method, tt.request, strings.NewReader(tt.body))
+			for header, value := range tt.headers {
+				request.Header.Add(header, value)
+			}
+
+			recorder := httptest.NewRecorder()
+			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config))
+
+			router.Router.ServeHTTP(recorder, request)
+
+			result := recorder.Result()
+
+			assert.Equal(t, tt.want.statusCode, result.StatusCode)
+			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
+
+			body, err := io.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want.body, string(body))
+		})
+	}
 }

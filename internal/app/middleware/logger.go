@@ -31,7 +31,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 }
 
 func Logger(next http.Handler) http.Handler {
-	logFunc := func(resp http.ResponseWriter, req *http.Request) {
+	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 
 		responseData := &responseData{}
@@ -40,23 +40,22 @@ func Logger(next http.Handler) http.Handler {
 			ResponseWriter: resp,
 			responseData:   responseData,
 		}
+
 		next.ServeHTTP(&loggingResponse, req)
 
 		duration := time.Since(start)
 
-		zap.L().Info(
+		zap.L().Sugar().Infow(
 			"HTTP request",
-			zap.String("uri", req.RequestURI),
-			zap.String("method", req.Method),
-			zap.Duration("duration", duration),
+			"uri", req.RequestURI,
+			"method", req.Method,
+			"duration", duration,
 		)
 
-		zap.L().Info(
+		zap.L().Sugar().Infow(
 			"HTTP response",
-			zap.Int("status", responseData.status),
-			zap.Int("size", responseData.size),
+			"status", responseData.status,
+			"size", responseData.size,
 		)
-	}
-
-	return http.HandlerFunc(logFunc)
+	})
 }
