@@ -1,7 +1,6 @@
 package shortener
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -23,7 +22,6 @@ func TestCreateID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			id, err := CreateID(tt.url)
-			fmt.Println(id)
 			assert.NoError(t, err)
 			assert.Regexp(t, tt.want, id)
 		})

@@ -91,8 +91,6 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	fmt.Println(requestModel.URL)
-
 	if requestModel.URL == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
