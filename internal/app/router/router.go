@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/VladKvetkin/shortener/internal/app/handler"
-	"github.com/VladKvetkin/shortener/internal/app/logger"
+	"github.com/VladKvetkin/shortener/internal/app/middleware"
 	"github.com/go-chi/chi"
 )
 
@@ -21,9 +21,11 @@ func NewRouter(handler *handler.Handler) *Router {
 		handler: handler,
 	}
 
+	chiRouter.Use(middleware.Logger)
 	chiRouter.Route("/", func(r chi.Router) {
-		r.Post("/", logger.WithLogging(http.HandlerFunc(handler.PostHandler)))
-		r.Get("/{id}", logger.WithLogging(http.HandlerFunc(handler.GetHandler)))
+		r.Post("/", http.HandlerFunc(handler.PostHandler))
+		r.Post("/api/shorten", http.HandlerFunc(handler.ApiShortenHandler))
+		r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
 	})
 
 	return router

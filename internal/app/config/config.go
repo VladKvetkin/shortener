@@ -10,14 +10,12 @@ import (
 type Config struct {
 	Address             string
 	BaseShortURLAddress string
-	LogLevel            string
 }
 
 func NewConfig() (Config, error) {
 	config := Config{
 		Address:             "localhost:8080",
 		BaseShortURLAddress: "http://localhost:8080/",
-		LogLevel:            "info",
 	}
 
 	flag.StringVar(&config.Address, "a", config.Address, "HTTP server address")

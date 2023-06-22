@@ -226,3 +226,7 @@ func TestRouterGetHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestRouterApiShortenHandler(t *testing.T) {
+
+}

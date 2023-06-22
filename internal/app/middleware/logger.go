@@ -1,4 +1,4 @@
-package logger
+package middleware
 
 import (
 	"net/http"
@@ -13,7 +13,6 @@ type (
 		size   int
 	}
 
-	// добавляем реализацию http.ResponseWriter
 	loggingResponseWriter struct {
 		http.ResponseWriter
 		responseData *responseData
@@ -31,50 +30,28 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode
 }
 
-var Log *zap.Logger = zap.NewNop()
-
-func Initialize(level string) error {
-	lvl, err := zap.ParseAtomicLevel(level)
-	if err != nil {
-		return err
-	}
-
-	cfg := zap.NewProductionConfig()
-	cfg.Level = lvl
-	zl, err := cfg.Build()
-	if err != nil {
-		return err
-	}
-
-	Log = zl
-	return nil
-}
-
-func WithLogging(h http.Handler) http.HandlerFunc {
-	logFunc := func(w http.ResponseWriter, r *http.Request) {
+func Logger(next http.Handler) http.Handler {
+	logFunc := func(resp http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 
-		responseData := &responseData{
-			status: 0,
-			size:   0,
-		}
+		responseData := &responseData{}
 
-		lw := loggingResponseWriter{
-			ResponseWriter: w,
+		loggingResponse := loggingResponseWriter{
+			ResponseWriter: resp,
 			responseData:   responseData,
 		}
-		h.ServeHTTP(&lw, r)
+		next.ServeHTTP(&loggingResponse, req)
 
 		duration := time.Since(start)
 
-		Log.Info(
+		zap.L().Info(
 			"HTTP request",
-			zap.String("uri", r.RequestURI),
-			zap.String("method", r.Method),
+			zap.String("uri", req.RequestURI),
+			zap.String("method", req.Method),
 			zap.Duration("duration", duration),
 		)
 
-		Log.Info(
+		zap.L().Info(
 			"HTTP response",
 			zap.Int("status", responseData.status),
 			zap.Int("size", responseData.size),
