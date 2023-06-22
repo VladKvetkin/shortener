@@ -7,7 +7,10 @@ import (
 
 func CreateID(url string) (string, error) {
 	hasher := sha256.New()
-	hasher.Write([]byte(url))
+	if _, err := hasher.Write([]byte(url)); err != nil {
+		return "", nil
+	}
+
 	hash := hasher.Sum(nil)
 
 	id := base64.URLEncoding.EncodeToString(hash)
