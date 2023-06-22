@@ -81,8 +81,8 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)))
 }
 
-func (h *Handler) ApiShortenHandler(res http.ResponseWriter, req *http.Request) {
-	var requestModel models.ApiShortenRequest
+func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) {
+	var requestModel models.APIShortenRequest
 
 	jsonDecoder := json.NewDecoder(req.Body)
 	defer req.Body.Close()
@@ -92,12 +92,12 @@ func (h *Handler) ApiShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	if requestModel.Url == "" {
+	if requestModel.URL == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	id, err := shortener.CreateID(requestModel.Url)
+	id, err := shortener.CreateID(requestModel.URL)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -106,23 +106,23 @@ func (h *Handler) ApiShortenHandler(res http.ResponseWriter, req *http.Request) 
 	_, err = h.storage.ReadByID(id)
 	if err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, requestModel.Url)
+			h.storage.Add(id, requestModel.URL)
 		} else {
 			http.Error(res, "Invalid request", http.StatusBadRequest)
 			return
 		}
 	}
 
-	responseModel := models.ApiShortenResponse{
+	responseModel := models.APIShortenResponse{
 		Result: fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id),
 	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusCreated)
 
 	jsonEncoder := json.NewEncoder(res)
 	if err := jsonEncoder.Encode(responseModel); err != nil {
 		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
 		return
 	}
-
-	res.Header().Set("Content-type", "application/json")
-	res.WriteHeader(http.StatusOK)
 }

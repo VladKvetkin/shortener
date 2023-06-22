@@ -1,9 +1,9 @@
 package models
 
-type ApiShortenRequest struct {
-	Url string `json:"url"`
+type APIShortenRequest struct {
+	URL string `json:"url"`
 }
 
-type ApiShortenResponse struct {
+type APIShortenResponse struct {
 	Result string `json:"result"`
 }

@@ -24,7 +24,7 @@ func NewRouter(handler *handler.Handler) *Router {
 	chiRouter.Use(middleware.Logger)
 	chiRouter.Route("/", func(r chi.Router) {
 		r.Post("/", http.HandlerFunc(handler.PostHandler))
-		r.Post("/api/shorten", http.HandlerFunc(handler.ApiShortenHandler))
+		r.Post("/api/shorten", http.HandlerFunc(handler.APIShortenHandler))
 		r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
 	})
 
