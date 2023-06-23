@@ -22,7 +22,7 @@ func NewRouter(handler *handler.Handler) *Router {
 		handler: handler,
 	}
 
-	chiRouter.Use(chiMiddleware.Compress(5, "application/json", "text/html"), middleware.Logger)
+	chiRouter.Use(middleware.DecompressBodyReader, chiMiddleware.Compress(5, "application/json", "text/html"), middleware.Logger)
 	chiRouter.Route("/", func(r chi.Router) {
 		r.Post("/", http.HandlerFunc(handler.PostHandler))
 		r.Post("/api/shorten", http.HandlerFunc(handler.APIShortenHandler))
