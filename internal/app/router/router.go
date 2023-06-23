@@ -6,6 +6,7 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/middleware"
 	"github.com/go-chi/chi"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
 type Router struct {
@@ -21,7 +22,7 @@ func NewRouter(handler *handler.Handler) *Router {
 		handler: handler,
 	}
 
-	chiRouter.Use(middleware.Logger)
+	chiRouter.Use(chiMiddleware.Compress(5, "application/json", "text/html"), middleware.Logger)
 	chiRouter.Route("/", func(r chi.Router) {
 		r.Post("/", http.HandlerFunc(handler.PostHandler))
 		r.Post("/api/shorten", http.HandlerFunc(handler.APIShortenHandler))
