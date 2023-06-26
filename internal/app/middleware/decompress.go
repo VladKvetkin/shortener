@@ -7,28 +7,28 @@ import (
 	"strings"
 )
 
-type deCompressReader struct {
+type decompressReader struct {
 	r  io.ReadCloser
 	zr *gzip.Reader
 }
 
-func newDecompressReader(r io.ReadCloser) (*deCompressReader, error) {
+func newDecompressReader(r io.ReadCloser) (*decompressReader, error) {
 	zr, err := gzip.NewReader(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return &deCompressReader{
+	return &decompressReader{
 		r:  r,
 		zr: zr,
 	}, nil
 }
 
-func (c deCompressReader) Read(p []byte) (n int, err error) {
+func (c decompressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
-func (c deCompressReader) Close() error {
+func (c decompressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err
 	}
@@ -42,12 +42,13 @@ func DecompressBodyReader(next http.Handler) http.Handler {
 		if strings.Contains(contentEncoding, "gzip") {
 			decompressReader, err := newDecompressReader(req.Body)
 			if err != nil {
-				resp.WriteHeader(http.StatusInternalServerError)
+				http.Error(resp, "Cannot decompress request JSON body", http.StatusInternalServerError)
 				return
 			}
 
-			req.Body = decompressReader
 			defer decompressReader.Close()
+
+			req.Body = decompressReader
 		}
 
 		next.ServeHTTP(resp, req)

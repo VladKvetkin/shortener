@@ -68,7 +68,7 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	if _, err = h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, stringBody)
+			h.storage.Add(id, stringBody, true)
 		} else {
 			http.Error(res, "Invalid request", http.StatusBadRequest)
 			return
@@ -104,7 +104,7 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 
 	if _, err = h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, requestModel.URL)
+			h.storage.Add(id, requestModel.URL, true)
 		} else {
 			http.Error(res, "Invalid request", http.StatusBadRequest)
 			return
