@@ -18,7 +18,7 @@ func NewConfig() (Config, error) {
 	config := Config{
 		Address:             "localhost:8080",
 		BaseShortURLAddress: "http://localhost:8080/",
-		FileStoragePath:     "./short-url-db.json",
+		FileStoragePath:     "/tmp/short-url-db.json",
 	}
 
 	flag.StringVar(&config.Address, "a", config.Address, "HTTP server address")

@@ -42,7 +42,7 @@ func DecompressBodyReader(next http.Handler) http.Handler {
 		if strings.Contains(contentEncoding, "gzip") {
 			decompressReader, err := newDecompressReader(req.Body)
 			if err != nil {
-				http.Error(resp, "Cannot decompress request JSON body", http.StatusInternalServerError)
+				http.Error(resp, "Cannot decompress request JSON body", http.StatusBadRequest)
 				return
 			}
 

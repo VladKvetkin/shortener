@@ -46,8 +46,6 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 
-	defer req.Body.Close()
-
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -60,19 +58,10 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := shortener.CreateID(stringBody)
+	id, err := h.createAndAddID(stringBody)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
-	}
-
-	if _, err = h.storage.ReadByID(id); err != nil {
-		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, stringBody, true)
-		} else {
-			http.Error(res, "Invalid request", http.StatusBadRequest)
-			return
-		}
 	}
 
 	res.Header().Set("Content-type", "text/plain")
@@ -84,10 +73,9 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 	var requestModel models.APIShortenRequest
 
 	jsonDecoder := json.NewDecoder(req.Body)
-	defer req.Body.Close()
 
 	if err := jsonDecoder.Decode(&requestModel); err != nil {
-		http.Error(res, "Cannot decode request JSON body", http.StatusInternalServerError)
+		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
 		return
 	}
 
@@ -96,19 +84,10 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	id, err := shortener.CreateID(requestModel.URL)
+	id, err := h.createAndAddID(requestModel.URL)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
-	}
-
-	if _, err = h.storage.ReadByID(id); err != nil {
-		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, requestModel.URL, true)
-		} else {
-			http.Error(res, "Invalid request", http.StatusBadRequest)
-			return
-		}
 	}
 
 	responseModel := models.APIShortenResponse{
@@ -127,4 +106,22 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 
 func (h *Handler) formatShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)
+}
+
+func (h *Handler) createAndAddID(URL string) (string, error) {
+	id, err := shortener.CreateID(URL)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := h.storage.ReadByID(id); err != nil {
+		if errors.Is(err, storage.ErrIDNotExists) {
+			h.storage.Add(id, URL, true)
+			return id, nil
+		}
+
+		return "", err
+	}
+
+	return id, nil
 }

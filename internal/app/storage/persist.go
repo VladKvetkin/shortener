@@ -10,22 +10,22 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/models"
 )
 
-type Restorer interface {
+type Persister interface {
 	Restore(storage Storage) error
 	Save(id string, url string) error
 }
 
-type FileRestorer struct {
+type FilePersister struct {
 	filePath string
 }
 
-func NewRestorer(filePath string) Restorer {
-	return &FileRestorer{
+func NewPersister(filePath string) Persister {
+	return &FilePersister{
 		filePath: filePath,
 	}
 }
 
-func (fr *FileRestorer) Restore(storage Storage) error {
+func (fr *FilePersister) Restore(storage Storage) error {
 	file, err := os.OpenFile(fr.filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (fr *FileRestorer) Restore(storage Storage) error {
 	return nil
 }
 
-func (fr *FileRestorer) Save(id string, url string) error {
+func (fr *FilePersister) Save(id string, url string) error {
 	file, err := os.OpenFile(fr.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return err
@@ -72,15 +72,13 @@ func (fr *FileRestorer) Save(id string, url string) error {
 		return err
 	}
 
-	writer := bufio.NewWriter(file)
-
-	if _, err := writer.Write(jsonRecord); err != nil {
+	if _, err := file.Write(jsonRecord); err != nil {
 		return err
 	}
 
-	if err := writer.WriteByte('\n'); err != nil {
+	if _, err := file.Write([]byte{'\n'}); err != nil {
 		return err
 	}
 
-	return writer.Flush()
+	return nil
 }

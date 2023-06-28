@@ -15,7 +15,7 @@ func main() {
 		panic(err)
 	}
 
-	router := router.NewRouter(handler.NewHandler(storage.NewStorage(storage.NewRestorer(config.FileStoragePath)), config))
+	router := router.NewRouter(handler.NewHandler(storage.NewStorage(storage.NewPersister(config.FileStoragePath)), config))
 	server := server.NewServer(config, router.Router)
 
 	zap.L().Info("Running server", zap.String("Address", config.Address))

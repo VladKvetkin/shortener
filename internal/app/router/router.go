@@ -25,8 +25,8 @@ func NewRouter(handler *handler.Handler) *Router {
 
 	chiRouter.Use(
 		middleware.DecompressBodyReader,
-		chiMiddleware.Compress(gzip.BestCompression, "application/json", "text/html"),
 		middleware.Logger,
+		chiMiddleware.Compress(gzip.BestCompression, "application/json", "text/html"),
 	)
 
 	chiRouter.Route("/", func(r chi.Router) {

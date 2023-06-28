@@ -12,21 +12,21 @@ var (
 
 type Storage interface {
 	ReadByID(id string) (string, error)
-	Add(id string, url string, saveToRestorer bool) error
+	Add(id string, url string, saveToPersister bool) error
 }
 
 type MemStorage struct {
-	storage  map[string]string
-	restorer Restorer
+	storage   map[string]string
+	persister Persister
 }
 
-func NewStorage(restorer Restorer) Storage {
+func NewStorage(persister Persister) Storage {
 	memStorage := &MemStorage{
-		storage:  make(map[string]string),
-		restorer: restorer,
+		storage:   make(map[string]string),
+		persister: persister,
 	}
 
-	if err := restorer.Restore(memStorage); err != nil {
+	if err := persister.Restore(memStorage); err != nil {
 		zap.L().Sugar().Errorw(
 			"Cannot restore storage",
 			"err", err,
@@ -45,13 +45,13 @@ func (s *MemStorage) ReadByID(id string) (string, error) {
 	return url, nil
 }
 
-func (s *MemStorage) Add(id string, url string, saveToRestorer bool) error {
+func (s *MemStorage) Add(id string, url string, saveToPersister bool) error {
 	s.storage[id] = url
 
-	if saveToRestorer {
-		if err := s.restorer.Save(id, url); err != nil {
+	if saveToPersister {
+		if err := s.persister.Save(id, url); err != nil {
 			zap.L().Sugar().Errorw(
-				"Cannot save data to restorer",
+				"Cannot save data to persister",
 				"err", err,
 			)
 		}
