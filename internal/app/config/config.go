@@ -3,36 +3,35 @@ package config
 import (
 	"flag"
 	"net/url"
-	"os"
 	"strings"
+
+	"github.com/caarlos0/env/v8"
 )
 
 type Config struct {
-	Address             string
-	BaseShortURLAddress string
+	Address             string `env:"SERVER_ADDRESS"`
+	BaseShortURLAddress string `env:"BASE_URL"`
+	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
 }
 
 func NewConfig() (Config, error) {
 	config := Config{
 		Address:             "localhost:8080",
 		BaseShortURLAddress: "http://localhost:8080/",
+		FileStoragePath:     "/tmp/short-url-db.json",
 	}
 
-	flag.StringVar(&config.Address, "a", "localhost:8080", "HTTP server address")
-	flag.StringVar(&config.BaseShortURLAddress, "b", "http://localhost:8080/", "Base address for short URL")
+	flag.StringVar(&config.Address, "a", config.Address, "HTTP server address")
+	flag.StringVar(&config.BaseShortURLAddress, "b", config.BaseShortURLAddress, "Base address for short URL")
+	flag.StringVar(&config.FileStoragePath, "f", config.FileStoragePath, "File storage path for short URLs")
 
 	flag.Parse()
 
-	if address, ok := os.LookupEnv("SERVER_ADDRESS"); ok {
-		config.Address = address
+	if err := env.Parse(&config); err != nil {
+		return Config{}, err
 	}
 
-	if baseAddressForShortURL, ok := os.LookupEnv("BASE_URL"); ok {
-		config.BaseShortURLAddress = baseAddressForShortURL
-	}
-
-	err := config.validateConfig()
-	if err != nil {
+	if err := config.validateConfig(); err != nil {
 		return Config{}, err
 	}
 

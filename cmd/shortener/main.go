@@ -6,6 +6,7 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/server"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -14,8 +15,10 @@ func main() {
 		panic(err)
 	}
 
-	router := router.NewRouter(handler.NewHandler(storage.NewStorage(), config))
+	router := router.NewRouter(handler.NewHandler(storage.NewStorage(storage.NewPersister(config.FileStoragePath)), config))
 	server := server.NewServer(config, router.Router)
+
+	zap.L().Info("Running server", zap.String("Address", config.Address))
 
 	err = server.Start()
 	if err != nil {
