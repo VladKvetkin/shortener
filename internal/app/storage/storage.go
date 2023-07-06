@@ -13,6 +13,7 @@ var (
 type Storage interface {
 	ReadByID(id string) (string, error)
 	Add(id string, url string, saveToPersister bool) error
+	Ping() error
 }
 
 type MemStorage struct {
@@ -20,20 +21,20 @@ type MemStorage struct {
 	persister Persister
 }
 
-func NewStorage(persister Persister) Storage {
-	memStorage := &MemStorage{
+func NewMemStorage(persister Persister) Storage {
+	storage := &MemStorage{
 		storage:   make(map[string]string),
 		persister: persister,
 	}
 
-	if err := persister.Restore(memStorage); err != nil {
+	if err := persister.Restore(storage); err != nil {
 		zap.L().Sugar().Errorw(
 			"Cannot restore storage",
 			"err", err,
 		)
 	}
 
-	return memStorage
+	return storage
 }
 
 func (s *MemStorage) ReadByID(id string) (string, error) {
@@ -57,5 +58,9 @@ func (s *MemStorage) Add(id string, url string, saveToPersister bool) error {
 		}
 	}
 
+	return nil
+}
+
+func (s *MemStorage) Ping() error {
 	return nil
 }

@@ -21,16 +21,15 @@ type Handler struct {
 	db      *sqlx.DB
 }
 
-func NewHandler(storage storage.Storage, config config.Config, db *sqlx.DB) *Handler {
+func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	return &Handler{
 		config:  config,
 		storage: storage,
-		db:      db,
 	}
 }
 
 func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
-	err := h.db.Ping()
+	err := h.storage.Ping()
 	if err != nil {
 		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
