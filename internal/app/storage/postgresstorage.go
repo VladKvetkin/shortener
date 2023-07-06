@@ -66,12 +66,11 @@ func (s *PostgresStorage) createTables() error {
 	_, err := s.db.ExecContext(
 		context.Background(),
 		`
-			CREATE TABLE IF NOT EXISTS url
-				(
-					id VARCHAR(36) PRIMARY KEY,
-					short_url VARCHAR(255) NOT NULL,
-					original_url TEXT NOT NULL,
-				)
+		CREATE TABLE IF NOT EXISTS url (
+			id VARCHAR(36) PRIMARY KEY,
+			short_url VARCHAR(255) NOT NULL,
+			original_url TEXT NOT NULL,
+		)
 		`,
 	)
 

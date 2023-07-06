@@ -12,13 +12,11 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx"
 )
 
 type Handler struct {
 	storage storage.Storage
 	config  config.Config
-	db      *sqlx.DB
 }
 
 func NewHandler(storage storage.Storage, config config.Config) *Handler {
