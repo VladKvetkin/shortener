@@ -42,6 +42,7 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
+	fmt.Print(id)
 	if id == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -115,7 +116,7 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 			responseModel,
 			models.APIShortenBatchResponse{
 				CorrelationID: batchData.CorrelationID,
-				ShortURL:      shortURL,
+				ShortURL:      h.formatShortURL(shortURL),
 			},
 		)
 	}
