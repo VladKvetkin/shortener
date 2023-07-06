@@ -12,6 +12,7 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -104,7 +105,7 @@ func TestRouterPostHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config))
+			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config, &sqlx.DB{}))
 
 			router.Router.ServeHTTP(recorder, request)
 
@@ -208,7 +209,7 @@ func TestRouterGetHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config))
+			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config, &sqlx.DB{}))
 
 			router.Router.ServeHTTP(recorder, request)
 
@@ -312,7 +313,7 @@ func TestRouterAPIShortenHandler(t *testing.T) {
 			}
 
 			recorder := httptest.NewRecorder()
-			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config))
+			router := router.NewRouter(handler.NewHandler(tt.storage, tt.config, &sqlx.DB{}))
 
 			router.Router.ServeHTTP(recorder, request)
 
