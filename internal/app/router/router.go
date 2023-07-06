@@ -33,6 +33,7 @@ func NewRouter(handler *handler.Handler) *Router {
 		r.Post("/", http.HandlerFunc(handler.PostHandler))
 		r.Post("/api/shorten", http.HandlerFunc(handler.APIShortenHandler))
 		r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
+		r.Get("/ping", http.HandlerFunc(handler.PingHandler))
 	})
 
 	return router

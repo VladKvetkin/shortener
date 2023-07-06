@@ -12,18 +12,33 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx"
 )
 
 type Handler struct {
 	storage storage.Storage
 	config  config.Config
+	db      *sqlx.DB
 }
 
-func NewHandler(storage storage.Storage, config config.Config) *Handler {
+func NewHandler(storage storage.Storage, config config.Config, db *sqlx.DB) *Handler {
 	return &Handler{
 		config:  config,
 		storage: storage,
+		db:      db,
 	}
+}
+
+func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
+	err := h.db.Ping()
+	if err != nil {
+		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-type", "text/plain")
+	res.WriteHeader(http.StatusOK)
+	res.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {

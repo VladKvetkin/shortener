@@ -12,6 +12,7 @@ type Config struct {
 	Address             string `env:"SERVER_ADDRESS"`
 	BaseShortURLAddress string `env:"BASE_URL"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
+	DatabaseDSN         string `env:"DATABASE_DSN"`
 }
 
 func NewConfig() (Config, error) {
@@ -24,6 +25,7 @@ func NewConfig() (Config, error) {
 	flag.StringVar(&config.Address, "a", config.Address, "HTTP server address")
 	flag.StringVar(&config.BaseShortURLAddress, "b", config.BaseShortURLAddress, "Base address for short URL")
 	flag.StringVar(&config.FileStoragePath, "f", config.FileStoragePath, "File storage path for short URLs")
+	flag.StringVar(&config.DatabaseDSN, "d", config.DatabaseDSN, "Database data source name")
 
 	flag.Parse()
 
