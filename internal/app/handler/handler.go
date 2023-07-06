@@ -64,7 +64,6 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	stringBody := string(body)
-
 	if stringBody == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return

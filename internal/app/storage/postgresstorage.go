@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -26,19 +25,16 @@ func NewPostgresStorage(db *sqlx.DB) (Storage, error) {
 }
 
 func (s *PostgresStorage) ReadByID(id string) (string, error) {
-	var originalURL sql.NullString
+	var originalURL string
 
 	row := s.db.QueryRowxContext(context.Background(), "SELECT original_url FROM url WHERE short_url = $1;", id)
+
 	err := row.Scan(&originalURL)
 	if err != nil {
-		return "", err
+		return "", ErrIDNotExists
 	}
 
-	if originalURL.Valid {
-		return originalURL.String, nil
-	}
-
-	return "", ErrIDNotExists
+	return originalURL, nil
 }
 
 func (s *PostgresStorage) Add(id string, url string, saveToPersister bool) error {
