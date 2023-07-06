@@ -28,7 +28,7 @@ func NewPostgresStorage(db *sqlx.DB) (Storage, error) {
 func (s *PostgresStorage) ReadByID(id string) (string, error) {
 	var originalURL sql.NullString
 
-	row := s.db.QueryRowxContext(context.Background(), "SELECT original_url FROM url WHERE short_url = $1", id)
+	row := s.db.QueryRowxContext(context.Background(), "SELECT original_url FROM url WHERE short_url = $1;", id)
 	err := row.Scan(&originalURL)
 	if err != nil {
 		return "", err
@@ -46,7 +46,7 @@ func (s *PostgresStorage) Add(id string, url string, saveToPersister bool) error
 		context.Background(),
 		`
 			INSERT INTO url (id, short_url, original_url)
-			VALUES ($1, $2, $3)
+			VALUES ($1, $2, $3);
 		`,
 		uuid.NewString(), id, url,
 	)
