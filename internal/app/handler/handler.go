@@ -8,10 +8,12 @@ import (
 	"net/http"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
+	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/VladKvetkin/shortener/internal/app/models"
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -80,6 +82,60 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(h.formatShortURL(id)))
 }
 
+func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Request) {
+	var requestModel []models.APIShortenBatchRequest
+
+	jsonDecoder := json.NewDecoder(req.Body)
+
+	if err := jsonDecoder.Decode(&requestModel); err != nil {
+		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
+		return
+	}
+
+	urls := make([]entities.URL, 0, len(requestModel))
+	responseModel := make([]models.APIShortenBatchResponse, 0, len(requestModel))
+
+	for _, batchData := range requestModel {
+		shortURL, err := shortener.CreateID(batchData.OriginalURL)
+		if err != nil {
+			http.Error(res, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		urls = append(
+			urls,
+			entities.URL{
+				UUID:        uuid.NewString(),
+				OriginalURL: batchData.OriginalURL,
+				ShortURL:    shortURL,
+			},
+		)
+
+		responseModel = append(
+			responseModel,
+			models.APIShortenBatchResponse{
+				CorrelationID: batchData.CorrelationID,
+				ShortURL:      shortURL,
+			},
+		)
+	}
+
+	err := h.storage.AddBatch(urls)
+	if err != nil {
+		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusCreated)
+
+	jsonEncoder := json.NewEncoder(res)
+	if err := jsonEncoder.Encode(responseModel); err != nil {
+		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) {
 	var requestModel models.APIShortenRequest
 
@@ -127,7 +183,7 @@ func (h *Handler) createAndAddID(URL string) (string, error) {
 
 	if _, err := h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, URL, true)
+			h.storage.Add(id, URL)
 			return id, nil
 		}
 

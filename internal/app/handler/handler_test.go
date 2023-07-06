@@ -24,7 +24,7 @@ func TestRouterPostHandler(t *testing.T) {
 	}
 
 	shortURLAlreadyExistStorage := storage.NewMemStorage(storage.NewPersister(""))
-	shortURLAlreadyExistStorage.Add("QrPnX5IU", "https://practicum.yandex.ru/", true)
+	shortURLAlreadyExistStorage.Add("QrPnX5IU", "https://practicum.yandex.ru/")
 
 	tests := []struct {
 		name    string
@@ -131,7 +131,7 @@ func TestRouterGetHandler(t *testing.T) {
 	}
 
 	shortURLAlreadyExistStorage := storage.NewMemStorage(storage.NewPersister(""))
-	shortURLAlreadyExistStorage.Add("EwHXdJfB", "https://practicum.yandex.ru/", true)
+	shortURLAlreadyExistStorage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
 
 	tests := []struct {
 		name    string

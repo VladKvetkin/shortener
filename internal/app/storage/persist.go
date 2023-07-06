@@ -11,7 +11,7 @@ import (
 )
 
 type Persister interface {
-	Restore(storage Storage) error
+	Restore(storage *MemStorage) error
 	Save(id string, url string) error
 }
 
@@ -25,7 +25,7 @@ func NewPersister(filePath string) Persister {
 	}
 }
 
-func (fr *FilePersister) Restore(storage Storage) error {
+func (fr *FilePersister) Restore(storage *MemStorage) error {
 	file, err := os.OpenFile(fr.filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (fr *FilePersister) Restore(storage Storage) error {
 			return err
 		}
 
-		storage.Add(record.ShortURL, record.OriginalURL, false)
+		storage.AddWithoutPersisterSave(record.ShortURL, record.OriginalURL)
 	}
 
 	if err := scanner.Err(); err != nil {

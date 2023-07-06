@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 
+	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -37,7 +38,32 @@ func (s *PostgresStorage) ReadByID(id string) (string, error) {
 	return originalURL, nil
 }
 
-func (s *PostgresStorage) Add(id string, url string, saveToPersister bool) error {
+func (s *PostgresStorage) AddBatch(urls []entities.URL) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, url := range urls {
+		_, err := tx.ExecContext(
+			context.Background(),
+			`
+				INSERT INTO url (id, short_url, original_url)
+				VALUES ($1, $2, $3);
+			`,
+			url.UUID, url.ShortURL, url.OriginalURL,
+		)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (s *PostgresStorage) Add(id string, url string) error {
 	_, err := s.db.ExecContext(
 		context.Background(),
 		`
