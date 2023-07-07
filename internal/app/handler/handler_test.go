@@ -89,7 +89,7 @@ func TestRouterPostHandler(t *testing.T) {
 			},
 			want: want{
 				contentType: "text/plain",
-				statusCode:  http.StatusCreated,
+				statusCode:  http.StatusConflict,
 				body:        regexp.MustCompile(`^http://localhost/QrPnX5IU`),
 			},
 		},
