@@ -91,7 +91,7 @@ func (s *PostgresStorage) createTables() error {
 		CREATE TABLE IF NOT EXISTS url (
 			id VARCHAR(36) PRIMARY KEY,
 			short_url VARCHAR(255) NOT NULL,
-			original_url TEXT NOT NULL
+			original_url TEXT NOT NULL UNIQUE
 		);
 		`,
 	)

@@ -16,6 +16,10 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	ErrOriginalURLAlreadyExists = errors.New("original URL already exists")
+)
+
 type Handler struct {
 	storage storage.Storage
 	config  config.Config
@@ -74,6 +78,13 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	id, err := h.createAndAddID(stringBody)
 	if err != nil {
+		if errors.Is(err, ErrOriginalURLAlreadyExists) {
+			res.Header().Set("Content-type", "text/plain")
+			res.WriteHeader(http.StatusConflict)
+			res.Write([]byte(h.formatShortURL(id)))
+			return
+		}
+
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
@@ -154,22 +165,16 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 
 	id, err := h.createAndAddID(requestModel.URL)
 	if err != nil {
+		if errors.Is(err, ErrOriginalURLAlreadyExists) {
+			h.sendJSONShortURL(res, id, http.StatusConflict)
+			return
+		}
+
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
-	responseModel := models.APIShortenResponse{
-		Result: h.formatShortURL(id),
-	}
-
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusCreated)
-
-	jsonEncoder := json.NewEncoder(res)
-	if err := jsonEncoder.Encode(responseModel); err != nil {
-		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONShortURL(res, id, http.StatusCreated)
 }
 
 func (h *Handler) formatShortURL(id string) string {
@@ -184,12 +189,30 @@ func (h *Handler) createAndAddID(URL string) (string, error) {
 
 	if _, err := h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
-			h.storage.Add(id, URL)
+			err := h.storage.Add(id, URL)
+			if err != nil {
+				return "", err
+			}
+
 			return id, nil
 		}
 
 		return "", err
 	}
 
-	return id, nil
+	return id, ErrOriginalURLAlreadyExists
+}
+
+func (h *Handler) sendJSONShortURL(res http.ResponseWriter, id string, httpStatus int) {
+	responseModel := models.APIShortenResponse{
+		Result: h.formatShortURL(id),
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(httpStatus)
+
+	jsonEncoder := json.NewEncoder(res)
+	if err := jsonEncoder.Encode(responseModel); err != nil {
+		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
+	}
 }
