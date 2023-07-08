@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
+	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
@@ -24,7 +25,10 @@ func TestRouterPostHandler(t *testing.T) {
 	}
 
 	shortURLAlreadyExistStorage := storage.NewMemStorage(storage.NewPersister(""))
-	shortURLAlreadyExistStorage.Add("QrPnX5IU", "https://practicum.yandex.ru/")
+	shortURLAlreadyExistStorage.Add(entities.URL{
+		ShortURL:    "QrPnX5IU",
+		OriginalURL: "https://practicum.yandex.ru/",
+	})
 
 	tests := []struct {
 		name    string
@@ -131,7 +135,10 @@ func TestRouterGetHandler(t *testing.T) {
 	}
 
 	shortURLAlreadyExistStorage := storage.NewMemStorage(storage.NewPersister(""))
-	shortURLAlreadyExistStorage.Add("EwHXdJfB", "https://practicum.yandex.ru/")
+	shortURLAlreadyExistStorage.Add(entities.URL{
+		ShortURL:    "EwHXdJfB",
+		OriginalURL: "https://practicum.yandex.ru/",
+	})
 
 	tests := []struct {
 		name    string

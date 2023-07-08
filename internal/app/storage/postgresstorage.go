@@ -51,7 +51,7 @@ func (s *PostgresStorage) AddBatch(urls []entities.URL) error {
 				INSERT INTO url (id, short_url, original_url)
 				VALUES ($1, $2, $3);
 			`,
-			url.UUID, url.ShortURL, url.OriginalURL,
+			uuid.NewString(), url.ShortURL, url.OriginalURL,
 		)
 
 		if err != nil {
@@ -63,14 +63,14 @@ func (s *PostgresStorage) AddBatch(urls []entities.URL) error {
 	return tx.Commit()
 }
 
-func (s *PostgresStorage) Add(id string, url string) error {
+func (s *PostgresStorage) Add(url entities.URL) error {
 	_, err := s.db.ExecContext(
 		context.Background(),
 		`
 			INSERT INTO url (id, short_url, original_url)
 			VALUES ($1, $2, $3);
 		`,
-		uuid.NewString(), id, url,
+		uuid.NewString(), url.ShortURL, url.OriginalURL,
 	)
 
 	if err != nil {
@@ -82,6 +82,10 @@ func (s *PostgresStorage) Add(id string, url string) error {
 
 func (s *PostgresStorage) Ping() error {
 	return s.db.Ping()
+}
+
+func (s *PostgresStorage) Close() error {
+	return s.db.Close()
 }
 
 func (s *PostgresStorage) createTables() error {

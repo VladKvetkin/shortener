@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/google/uuid"
-
+	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/VladKvetkin/shortener/internal/app/models"
+	"github.com/google/uuid"
 )
 
 type Persister interface {
 	Restore(storage *MemStorage) error
-	Save(id string, url string) error
+	Save(entities.URL) error
 }
 
 type FilePersister struct {
@@ -42,7 +42,11 @@ func (fr *FilePersister) Restore(storage *MemStorage) error {
 			return err
 		}
 
-		storage.AddWithoutPersisterSave(record.ShortURL, record.OriginalURL)
+		storage.AddWithoutPersisterSave(entities.URL{
+			UUID:        record.UUID,
+			ShortURL:    record.ShortURL,
+			OriginalURL: record.OriginalURL,
+		})
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -52,7 +56,7 @@ func (fr *FilePersister) Restore(storage *MemStorage) error {
 	return nil
 }
 
-func (fr *FilePersister) Save(id string, url string) error {
+func (fr *FilePersister) Save(url entities.URL) error {
 	file, err := os.OpenFile(fr.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return err
@@ -63,8 +67,8 @@ func (fr *FilePersister) Save(id string, url string) error {
 	jsonRecord, err := json.Marshal(
 		models.FileStorageRecord{
 			UUID:        uuid.NewString(),
-			ShortURL:    id,
-			OriginalURL: url,
+			ShortURL:    url.ShortURL,
+			OriginalURL: url.OriginalURL,
 		},
 	)
 

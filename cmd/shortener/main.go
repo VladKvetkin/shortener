@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
@@ -13,30 +12,21 @@ import (
 )
 
 func main() {
-	var dataStorage storage.Storage
-
 	config, err := config.NewConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	if config.DatabaseDSN != "" {
-		db, err := sqlx.Connect("postgres", config.DatabaseDSN)
-		if err != nil {
-			panic(err)
-		}
+	storageFactory := storage.StorageFactory{}
 
-		defer db.Close()
-
-		dataStorage, err = storage.NewPostgresStorage(db)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		dataStorage = storage.NewMemStorage(storage.NewPersister(config.FileStoragePath))
+	storage, err := storageFactory.GetStorage(config)
+	if err != nil {
+		panic(err)
 	}
 
-	router := router.NewRouter(handler.NewHandler(dataStorage, config))
+	defer storage.Close()
+
+	router := router.NewRouter(handler.NewHandler(storage, config))
 	server := server.NewServer(config, router.Router)
 
 	zap.L().Info("Running server", zap.String("Address", config.Address))

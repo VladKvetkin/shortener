@@ -13,7 +13,6 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 )
 
 var (
@@ -117,7 +116,6 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 		urls = append(
 			urls,
 			entities.URL{
-				UUID:        uuid.NewString(),
 				OriginalURL: batchData.OriginalURL,
 				ShortURL:    shortURL,
 			},
@@ -189,7 +187,10 @@ func (h *Handler) createAndAddID(URL string) (string, error) {
 
 	if _, err := h.storage.ReadByID(id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
-			err := h.storage.Add(id, URL)
+			err := h.storage.Add(entities.URL{
+				ShortURL:    id,
+				OriginalURL: URL,
+			})
 			if err != nil {
 				return "", err
 			}
