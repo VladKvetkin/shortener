@@ -24,7 +24,17 @@ func TestRouterPostHandler(t *testing.T) {
 		body        *regexp.Regexp
 	}
 
-	shortURLAlreadyExistStorage := storage.NewMemStorage(storage.NewPersister(""))
+	storageFactory := storage.StorageFactory{}
+
+	defaultStorage, err := storageFactory.GetStorage(config.Config{})
+	if err != nil {
+		panic(err)
+	}
+	shortURLAlreadyExistStorage, err := storageFactory.GetStorage(config.Config{})
+	if err != nil {
+		panic(err)
+	}
+
 	shortURLAlreadyExistStorage.Add(entities.URL{
 		ShortURL:    "QrPnX5IU",
 		OriginalURL: "https://practicum.yandex.ru/",
@@ -45,7 +55,7 @@ func TestRouterPostHandler(t *testing.T) {
 			request: "/",
 			method:  http.MethodPost,
 			body:    "",
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -64,7 +74,7 @@ func TestRouterPostHandler(t *testing.T) {
 			request: "/",
 			method:  http.MethodPost,
 			body:    "https://practicum.yandex.ru/",
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -134,7 +144,17 @@ func TestRouterGetHandler(t *testing.T) {
 		body       *regexp.Regexp
 	}
 
-	shortURLAlreadyExistStorage := storage.NewMemStorage(storage.NewPersister(""))
+	storageFactory := storage.StorageFactory{}
+
+	defaultStorage, err := storageFactory.GetStorage(config.Config{})
+	if err != nil {
+		panic(err)
+	}
+	shortURLAlreadyExistStorage, err := storageFactory.GetStorage(config.Config{})
+	if err != nil {
+		panic(err)
+	}
+
 	shortURLAlreadyExistStorage.Add(entities.URL{
 		ShortURL:    "EwHXdJfB",
 		OriginalURL: "https://practicum.yandex.ru/",
@@ -154,7 +174,7 @@ func TestRouterGetHandler(t *testing.T) {
 			name:    "get request without short URL",
 			request: "/",
 			method:  http.MethodGet,
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -172,7 +192,7 @@ func TestRouterGetHandler(t *testing.T) {
 			name:    "get request with short URL, which not in storage",
 			request: "/EwHXdJfB",
 			method:  http.MethodGet,
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -241,6 +261,13 @@ func TestRouterAPIShortenHandler(t *testing.T) {
 		body        string
 	}
 
+	storageFactory := storage.StorageFactory{}
+
+	defaultStorage, err := storageFactory.GetStorage(config.Config{})
+	if err != nil {
+		panic(err)
+	}
+
 	tests := []struct {
 		name    string
 		request string
@@ -255,7 +282,7 @@ func TestRouterAPIShortenHandler(t *testing.T) {
 			name:    "post request without body",
 			request: "/api/shorten",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -274,7 +301,7 @@ func TestRouterAPIShortenHandler(t *testing.T) {
 			name:    "post request without URL in body",
 			request: "/api/shorten",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",
@@ -293,7 +320,7 @@ func TestRouterAPIShortenHandler(t *testing.T) {
 			name:    "post request with URL",
 			request: "/api/shorten",
 			method:  http.MethodPost,
-			storage: storage.NewMemStorage(storage.NewPersister("")),
+			storage: defaultStorage,
 			config: config.Config{
 				Address:             "localhost:8080",
 				BaseShortURLAddress: "http://localhost",

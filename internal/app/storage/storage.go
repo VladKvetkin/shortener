@@ -24,7 +24,7 @@ type MemStorage struct {
 	persister Persister
 }
 
-func NewMemStorage(persister Persister) Storage {
+func newMemStorage(persister Persister) Storage {
 	storage := &MemStorage{
 		storage:   make(map[string]string),
 		persister: persister,

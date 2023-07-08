@@ -12,7 +12,7 @@ type PostgresStorage struct {
 	db *sqlx.DB
 }
 
-func NewPostgresStorage(db *sqlx.DB) (Storage, error) {
+func newPostgresStorage(db *sqlx.DB) (Storage, error) {
 	storage := &PostgresStorage{
 		db: db,
 	}

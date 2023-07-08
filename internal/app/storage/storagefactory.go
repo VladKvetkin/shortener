@@ -15,7 +15,7 @@ func (sf *StorageFactory) GetStorage(config config.Config) (Storage, error) {
 			return nil, err
 		}
 
-		storage, err := NewPostgresStorage(db)
+		storage, err := newPostgresStorage(db)
 		if err != nil {
 			return nil, err
 		}
@@ -25,7 +25,7 @@ func (sf *StorageFactory) GetStorage(config config.Config) (Storage, error) {
 		return storage, nil
 	}
 
-	storage := NewMemStorage(NewPersister(config.FileStoragePath))
+	storage := newMemStorage(NewPersister(config.FileStoragePath))
 
 	zap.L().Info("Create memory storage")
 
