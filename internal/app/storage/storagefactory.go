@@ -25,7 +25,7 @@ func (sf *StorageFactory) GetStorage(config config.Config) (Storage, error) {
 		return storage, nil
 	}
 
-	storage := newMemStorage(NewPersister(config.FileStoragePath))
+	storage := newMemStorage(newPersister(config.FileStoragePath))
 
 	zap.L().Info("Create memory storage")
 
