@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 
 	"github.com/VladKvetkin/shortener/internal/app/entities"
@@ -12,7 +13,7 @@ var (
 )
 
 type Storage interface {
-	ReadByID(id string) (string, error)
+	ReadByID(context.Context, string) (string, error)
 	Add(entities.URL) error
 	Ping() error
 	AddBatch([]entities.URL) error
@@ -40,7 +41,7 @@ func newMemStorage(persister Persister) Storage {
 	return storage
 }
 
-func (s *MemStorage) ReadByID(id string) (string, error) {
+func (s *MemStorage) ReadByID(ctx context.Context, id string) (string, error) {
 	url, ok := s.storage[id]
 	if !ok {
 		return "", ErrIDNotExists

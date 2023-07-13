@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,7 +41,6 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-type", "text/plain")
 	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
@@ -51,7 +51,7 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url, err := h.storage.ReadByID(id)
+	url, err := h.storage.ReadByID(req.Context(), id)
 	if err != nil {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -75,7 +75,7 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := h.createAndAddID(stringBody)
+	id, err := h.createAndAddID(req.Context(), stringBody)
 	if err != nil {
 		if errors.Is(err, ErrOriginalURLAlreadyExists) {
 			res.Header().Set("Content-type", "text/plain")
@@ -161,7 +161,7 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	id, err := h.createAndAddID(requestModel.URL)
+	id, err := h.createAndAddID(req.Context(), requestModel.URL)
 	if err != nil {
 		if errors.Is(err, ErrOriginalURLAlreadyExists) {
 			h.sendJSONShortURL(res, id, http.StatusConflict)
@@ -179,13 +179,13 @@ func (h *Handler) formatShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)
 }
 
-func (h *Handler) createAndAddID(URL string) (string, error) {
+func (h *Handler) createAndAddID(ctx context.Context, URL string) (string, error) {
 	id, err := shortener.CreateID(URL)
 	if err != nil {
 		return "", err
 	}
 
-	if _, err := h.storage.ReadByID(id); err != nil {
+	if _, err := h.storage.ReadByID(ctx, id); err != nil {
 		if errors.Is(err, storage.ErrIDNotExists) {
 			err := h.storage.Add(entities.URL{
 				ShortURL:    id,

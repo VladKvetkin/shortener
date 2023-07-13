@@ -25,10 +25,10 @@ func newPostgresStorage(db *sqlx.DB) (Storage, error) {
 	return storage, nil
 }
 
-func (s *PostgresStorage) ReadByID(id string) (string, error) {
+func (s *PostgresStorage) ReadByID(ctx context.Context, id string) (string, error) {
 	var originalURL string
 
-	row := s.db.QueryRowxContext(context.Background(), "SELECT original_url FROM url WHERE short_url = $1;", id)
+	row := s.db.QueryRowxContext(ctx, "SELECT original_url FROM url WHERE short_url = $1;", id)
 
 	err := row.Scan(&originalURL)
 	if err != nil {
