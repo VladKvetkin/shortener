@@ -12,6 +12,7 @@ type Config struct {
 	Address             string `env:"SERVER_ADDRESS"`
 	BaseShortURLAddress string `env:"BASE_URL"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
+	DatabaseDSN         string `env:"DATABASE_DSN"`
 }
 
 func NewConfig() (Config, error) {
@@ -21,11 +22,7 @@ func NewConfig() (Config, error) {
 		FileStoragePath:     "/tmp/short-url-db.json",
 	}
 
-	flag.StringVar(&config.Address, "a", config.Address, "HTTP server address")
-	flag.StringVar(&config.BaseShortURLAddress, "b", config.BaseShortURLAddress, "Base address for short URL")
-	flag.StringVar(&config.FileStoragePath, "f", config.FileStoragePath, "File storage path for short URLs")
-
-	flag.Parse()
+	config.parseFlags()
 
 	if err := env.Parse(&config); err != nil {
 		return Config{}, err
@@ -40,15 +37,21 @@ func NewConfig() (Config, error) {
 	return config, nil
 }
 
-func (c *Config) validateConfig() error {
-	_, err := url.ParseRequestURI(c.Address)
-	if err != nil {
-		return err
-	}
+func (c *Config) parseFlags() {
+	flag.StringVar(&c.Address, "a", c.Address, "HTTP server address")
+	flag.StringVar(&c.BaseShortURLAddress, "b", c.BaseShortURLAddress, "Base address for short URL")
+	flag.StringVar(&c.FileStoragePath, "f", c.FileStoragePath, "File storage path for short URLs")
+	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "Database data source name")
 
-	_, err = url.ParseRequestURI(c.BaseShortURLAddress)
-	if err != nil {
-		return err
+	flag.Parse()
+}
+
+func (c *Config) validateConfig() error {
+	for _, URI := range []string{c.Address, c.BaseShortURLAddress} {
+		_, err := url.ParseRequestURI(URI)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "github.com/lib/pq"
+
 	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/router"
@@ -15,7 +17,16 @@ func main() {
 		panic(err)
 	}
 
-	router := router.NewRouter(handler.NewHandler(storage.NewStorage(storage.NewPersister(config.FileStoragePath)), config))
+	storageFactory := storage.StorageFactory{}
+
+	storage, err := storageFactory.GetStorage(config)
+	if err != nil {
+		panic(err)
+	}
+
+	defer storage.Close()
+
+	router := router.NewRouter(handler.NewHandler(storage, config))
 	server := server.NewServer(config, router.Router)
 
 	zap.L().Info("Running server", zap.String("Address", config.Address))
