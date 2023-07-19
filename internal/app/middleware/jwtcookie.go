@@ -18,6 +18,7 @@ func JWTCookie(next http.Handler) http.Handler {
 		jwtTokenBuilder := auth.JwtTokenBuilder{}
 
 		tokenCookie, err := req.Cookie(TokenCookieName)
+
 		if err != nil {
 			token, err = jwtTokenBuilder.BuildJWTToken()
 			if err != nil {
@@ -26,7 +27,6 @@ func JWTCookie(next http.Handler) http.Handler {
 			}
 		} else {
 			token = tokenCookie.Value
-
 			userID, err := jwtTokenBuilder.GetUserID(token)
 			if err != nil {
 				token, err = jwtTokenBuilder.BuildJWTToken()
@@ -42,6 +42,7 @@ func JWTCookie(next http.Handler) http.Handler {
 		http.SetCookie(resp, &http.Cookie{
 			Name:  TokenCookieName,
 			Value: token,
+			Path:  "/",
 		})
 
 		next.ServeHTTP(resp, req)

@@ -24,7 +24,7 @@ type APIShortenBatchResponse struct {
 	ShortURL      string `json:"short_url"`
 }
 
-type APIUserUrlResponse struct {
+type APIUserURLResponse struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }

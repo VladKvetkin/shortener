@@ -52,11 +52,11 @@ func (h *Handler) GetUserUrls(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseModel := make([]models.APIUserUrlResponse, 0, len(userURLs))
+	responseModel := make([]models.APIUserURLResponse, 0, len(userURLs))
 	for _, userURL := range userURLs {
 		responseModel = append(
 			responseModel,
-			models.APIUserUrlResponse{
+			models.APIUserURLResponse{
 				ShortURL:    userURL.ShortURL,
 				OriginalURL: userURL.OriginalURL,
 			},

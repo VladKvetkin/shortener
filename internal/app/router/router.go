@@ -25,6 +25,7 @@ func NewRouter(handler *handler.Handler) *Router {
 
 	chiRouter.Use(
 		middleware.DecompressBodyReader,
+		middleware.JWTCookie,
 		middleware.Logger,
 		chiMiddleware.Compress(gzip.BestCompression, "application/json", "text/html"),
 	)

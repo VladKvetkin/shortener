@@ -62,7 +62,7 @@ func (s *PostgresStorage) AddBatch(urls []entities.URL) error {
 				INSERT INTO url (id, short_url, original_url, user_id)
 				VALUES ($1, $2, $3, $4);
 			`,
-			uuid.NewString(), url.ShortURL, url.OriginalURL,
+			uuid.NewString(), url.ShortURL, url.OriginalURL, url.UserID,
 		)
 
 		if err != nil {
@@ -81,7 +81,7 @@ func (s *PostgresStorage) Add(url entities.URL) error {
 			INSERT INTO url (id, short_url, original_url, user_id)
 			VALUES ($1, $2, $3, $4);
 		`,
-		uuid.NewString(), url.ShortURL, url.OriginalURL,
+		uuid.NewString(), url.ShortURL, url.OriginalURL, url.UserID,
 	)
 
 	if err != nil {
@@ -100,14 +100,14 @@ func (s *PostgresStorage) Close() error {
 }
 
 func (s *PostgresStorage) createTables(ctx context.Context) error {
-	if err := s.createTableUrl(ctx); err != nil {
+	if err := s.createTableURL(ctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s PostgresStorage) createTableUrl(ctx context.Context) error {
+func (s PostgresStorage) createTableURL(ctx context.Context) error {
 	_, err := s.db.ExecContext(
 		ctx,
 		`
@@ -115,7 +115,7 @@ func (s PostgresStorage) createTableUrl(ctx context.Context) error {
 			id VARCHAR(36) PRIMARY KEY,
 			short_url VARCHAR(255) NOT NULL,
 			original_url TEXT NOT NULL UNIQUE,
-			user_id VARCHAR(36) NOT NULL UNIQUE
+			user_id VARCHAR(36) NOT NULL
 		);
 		`,
 	)
