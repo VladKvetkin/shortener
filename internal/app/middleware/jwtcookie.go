@@ -27,6 +27,7 @@ func JWTCookie(next http.Handler) http.Handler {
 			}
 		} else {
 			token = tokenCookie.Value
+			_, err := jwtTokenBuilder.GetUserID(token)
 			if err != nil {
 				token, err = jwtTokenBuilder.BuildJWTToken()
 				if err != nil {
