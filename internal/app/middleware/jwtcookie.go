@@ -27,17 +27,22 @@ func JWTCookie(next http.Handler) http.Handler {
 			}
 		} else {
 			token = tokenCookie.Value
-			userID, err := jwtTokenBuilder.GetUserID(token)
 			if err != nil {
 				token, err = jwtTokenBuilder.BuildJWTToken()
 				if err != nil {
 					http.Error(resp, "Cannot build JWT for user", http.StatusBadRequest)
 					return
 				}
-			} else {
-				req = req.WithContext(context.WithValue(req.Context(), UserIDKey{}, userID))
 			}
 		}
+
+		userID, err := jwtTokenBuilder.GetUserID(token)
+		if err != nil {
+			http.Error(resp, "Invalid JWT", http.StatusBadRequest)
+			return
+		}
+
+		req = req.WithContext(context.WithValue(req.Context(), UserIDKey{}, userID))
 
 		http.SetCookie(resp, &http.Cookie{
 			Name:  TokenCookieName,

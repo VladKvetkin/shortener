@@ -15,7 +15,6 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 )
 
 var (
@@ -35,6 +34,12 @@ func NewHandler(storage storage.Storage, config config.Config) *Handler {
 }
 
 func (h *Handler) GetUserUrls(res http.ResponseWriter, req *http.Request) {
+	_, err := req.Cookie(middleware.TokenCookieName)
+	if err != nil {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
 	if !ok {
 		http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
@@ -57,7 +62,7 @@ func (h *Handler) GetUserUrls(res http.ResponseWriter, req *http.Request) {
 		responseModel = append(
 			responseModel,
 			models.APIUserURLResponse{
-				ShortURL:    userURL.ShortURL,
+				ShortURL:    h.formatShortURL(userURL.ShortURL),
 				OriginalURL: userURL.OriginalURL,
 			},
 		)
@@ -117,7 +122,8 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 
 	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
 	if !ok {
-		userID = uuid.NewString()
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
 	}
 
 	id, err := h.createAndAddID(req.Context(), stringBody, userID)
@@ -150,7 +156,8 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 
 	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
 	if !ok {
-		userID = uuid.NewString()
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
 	}
 
 	urls := make([]entities.URL, 0, len(requestModel))
@@ -214,7 +221,8 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 
 	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
 	if !ok {
-		userID = uuid.NewString()
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
 	}
 
 	id, err := h.createAndAddID(req.Context(), requestModel.URL, userID)
