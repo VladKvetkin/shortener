@@ -31,9 +31,13 @@ func NewRouter(handler *handler.Handler) *Router {
 
 	chiRouter.Route("/", func(r chi.Router) {
 		r.Post("/", http.HandlerFunc(handler.PostHandler))
-		r.Route("/api/shorten", func(r chi.Router) {
-			r.Post("/", http.HandlerFunc(handler.APIShortenHandler))
-			r.Post("/batch", http.HandlerFunc(handler.APIShortenBatchHandler))
+		r.Route("/api", func(r chi.Router) {
+			r.Route("/shorten", func(r chi.Router) {
+				r.Post("/", http.HandlerFunc(handler.APIShortenHandler))
+				r.Post("/batch", http.HandlerFunc(handler.APIShortenBatchHandler))
+			})
+
+			r.Get("/user/urls", http.HandlerFunc(handler.GetUserUrls))
 		})
 		r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
 		r.Get("/ping", http.HandlerFunc(handler.PingHandler))

@@ -18,6 +18,7 @@ type Storage interface {
 	Ping() error
 	AddBatch([]entities.URL) error
 	Close() error
+	GetUserURLs(context.Context, string) ([]entities.URL, error)
 }
 
 type MemStorage struct {
@@ -39,6 +40,10 @@ func newMemStorage(persister Persister) Storage {
 	}
 
 	return storage
+}
+
+func (s *MemStorage) GetUserURLs(ctx context.Context, userID string) ([]entities.URL, error) {
+	return nil, nil
 }
 
 func (s *MemStorage) ReadByID(ctx context.Context, id string) (string, error) {

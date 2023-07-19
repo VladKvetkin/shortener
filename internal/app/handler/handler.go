@@ -10,10 +10,12 @@ import (
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/entities"
+	"github.com/VladKvetkin/shortener/internal/app/middleware"
 	"github.com/VladKvetkin/shortener/internal/app/models"
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 )
 
 var (
@@ -32,6 +34,45 @@ func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	}
 }
 
+func (h *Handler) GetUserUrls(res http.ResponseWriter, req *http.Request) {
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	userURLs, err := h.storage.GetUserURLs(req.Context(), userID)
+	if err != nil {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if len(userURLs) == 0 {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	responseModel := make([]models.APIUserUrlResponse, 0, len(userURLs))
+	for _, userURL := range userURLs {
+		responseModel = append(
+			responseModel,
+			models.APIUserUrlResponse{
+				ShortURL:    userURL.ShortURL,
+				OriginalURL: userURL.OriginalURL,
+			},
+		)
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	jsonEncoder := json.NewEncoder(res)
+	if err := jsonEncoder.Encode(responseModel); err != nil {
+		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 	err := h.storage.Ping()
 	if err != nil {
@@ -45,7 +86,6 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
-	fmt.Print(id)
 	if id == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -75,7 +115,12 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := h.createAndAddID(req.Context(), stringBody)
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		userID = uuid.NewString()
+	}
+
+	id, err := h.createAndAddID(req.Context(), stringBody, userID)
 	if err != nil {
 		if errors.Is(err, ErrOriginalURLAlreadyExists) {
 			res.Header().Set("Content-type", "text/plain")
@@ -103,6 +148,11 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		userID = uuid.NewString()
+	}
+
 	urls := make([]entities.URL, 0, len(requestModel))
 	responseModel := make([]models.APIShortenBatchResponse, 0, len(requestModel))
 
@@ -118,6 +168,7 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 			entities.URL{
 				OriginalURL: batchData.OriginalURL,
 				ShortURL:    shortURL,
+				UserID:      userID,
 			},
 		)
 
@@ -161,7 +212,12 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	id, err := h.createAndAddID(req.Context(), requestModel.URL)
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		userID = uuid.NewString()
+	}
+
+	id, err := h.createAndAddID(req.Context(), requestModel.URL, userID)
 	if err != nil {
 		if errors.Is(err, ErrOriginalURLAlreadyExists) {
 			h.sendJSONShortURL(res, id, http.StatusConflict)
@@ -179,7 +235,7 @@ func (h *Handler) formatShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)
 }
 
-func (h *Handler) createAndAddID(ctx context.Context, URL string) (string, error) {
+func (h *Handler) createAndAddID(ctx context.Context, URL string, userID string) (string, error) {
 	id, err := shortener.CreateID(URL)
 	if err != nil {
 		return "", err
@@ -190,6 +246,7 @@ func (h *Handler) createAndAddID(ctx context.Context, URL string) (string, error
 			err := h.storage.Add(entities.URL{
 				ShortURL:    id,
 				OriginalURL: URL,
+				UserID:      userID,
 			})
 			if err != nil {
 				return "", err
