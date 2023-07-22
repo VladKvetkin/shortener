@@ -33,7 +33,35 @@ func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	}
 }
 
-func (h *Handler) GetUserUrls(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Request) {
+	var requestModel models.APIUserDeleteURLRequest
+
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	jsonDecoder := json.NewDecoder(req.Body)
+
+	if err := jsonDecoder.Decode(&requestModel); err != nil {
+		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
+		return
+	}
+
+	if len(requestModel) == 0 {
+		res.WriteHeader(http.StatusAccepted)
+		return
+	}
+
+	go func() {
+		h.storage.DeleteBatch(context.Background(), requestModel, userID)
+	}()
+
+	res.WriteHeader(http.StatusAccepted)
+}
+
+func (h *Handler) GetUserUrlsHandler(res http.ResponseWriter, req *http.Request) {
 	_, err := req.Cookie(middleware.TokenCookieName)
 	if err != nil {
 		res.WriteHeader(http.StatusNoContent)
@@ -102,7 +130,12 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.Header().Set("Location", url)
+	if url.DeletedFlag {
+		res.WriteHeader(http.StatusGone)
+		return
+	}
+
+	res.Header().Set("Location", url.OriginalURL)
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
@@ -188,7 +221,7 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 		)
 	}
 
-	err := h.storage.AddBatch(urls)
+	err := h.storage.AddBatch(req.Context(), urls)
 	if err != nil {
 		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return

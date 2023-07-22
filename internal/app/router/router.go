@@ -38,7 +38,8 @@ func NewRouter(handler *handler.Handler) *Router {
 				r.Post("/batch", http.HandlerFunc(handler.APIShortenBatchHandler))
 			})
 
-			r.Get("/user/urls", http.HandlerFunc(handler.GetUserUrls))
+			r.Get("/user/urls", http.HandlerFunc(handler.GetUserUrlsHandler))
+			r.Delete("/user/urls", http.HandlerFunc(handler.DeleteUserUrlsHandler))
 		})
 		r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
 		r.Get("/ping", http.HandlerFunc(handler.PingHandler))
