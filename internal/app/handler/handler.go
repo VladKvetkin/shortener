@@ -54,9 +54,17 @@ func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	go func() {
-		h.storage.DeleteBatch(context.Background(), requestModel, userID)
-	}()
+	ctx := context.Background()
+
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			h.storage.DeleteBatch(ctx, requestModel, userID)
+			return
+		}
+	}(ctx)
 
 	res.WriteHeader(http.StatusAccepted)
 }
