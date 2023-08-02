@@ -10,6 +10,7 @@ import (
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/entities"
+	"github.com/VladKvetkin/shortener/internal/app/middleware"
 	"github.com/VladKvetkin/shortener/internal/app/models"
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
@@ -32,6 +33,87 @@ func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	}
 }
 
+func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Request) {
+	var requestModel models.APIUserDeleteURLRequest
+
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	jsonDecoder := json.NewDecoder(req.Body)
+
+	if err := jsonDecoder.Decode(&requestModel); err != nil {
+		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
+		return
+	}
+
+	if len(requestModel) == 0 {
+		res.WriteHeader(http.StatusAccepted)
+		return
+	}
+
+	ctx := context.Background()
+
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			h.storage.DeleteBatch(ctx, requestModel, userID)
+			return
+		}
+	}(ctx)
+
+	res.WriteHeader(http.StatusAccepted)
+}
+
+func (h *Handler) GetUserUrlsHandler(res http.ResponseWriter, req *http.Request) {
+	_, err := req.Cookie(middleware.TokenCookieName)
+	if err != nil {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	userURLs, err := h.storage.GetUserURLs(req.Context(), userID)
+	if err != nil {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if len(userURLs) == 0 {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	responseModel := make([]models.APIUserURLResponse, 0, len(userURLs))
+	for _, userURL := range userURLs {
+		responseModel = append(
+			responseModel,
+			models.APIUserURLResponse{
+				ShortURL:    h.formatShortURL(userURL.ShortURL),
+				OriginalURL: userURL.OriginalURL,
+			},
+		)
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	jsonEncoder := json.NewEncoder(res)
+	if err := jsonEncoder.Encode(responseModel); err != nil {
+		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 	err := h.storage.Ping()
 	if err != nil {
@@ -45,7 +127,6 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
-	fmt.Print(id)
 	if id == "" {
 		http.Error(res, "Invalid request", http.StatusBadRequest)
 		return
@@ -57,7 +138,12 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.Header().Set("Location", url)
+	if url.DeletedFlag {
+		res.WriteHeader(http.StatusGone)
+		return
+	}
+
+	res.Header().Set("Location", url.OriginalURL)
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
@@ -75,7 +161,13 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := h.createAndAddID(req.Context(), stringBody)
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.createAndAddID(req.Context(), stringBody, userID)
 	if err != nil {
 		if errors.Is(err, ErrOriginalURLAlreadyExists) {
 			res.Header().Set("Content-type", "text/plain")
@@ -103,6 +195,12 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
 	urls := make([]entities.URL, 0, len(requestModel))
 	responseModel := make([]models.APIShortenBatchResponse, 0, len(requestModel))
 
@@ -118,6 +216,7 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 			entities.URL{
 				OriginalURL: batchData.OriginalURL,
 				ShortURL:    shortURL,
+				UserID:      userID,
 			},
 		)
 
@@ -130,7 +229,7 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 		)
 	}
 
-	err := h.storage.AddBatch(urls)
+	err := h.storage.AddBatch(req.Context(), urls)
 	if err != nil {
 		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -161,7 +260,13 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	id, err := h.createAndAddID(req.Context(), requestModel.URL)
+	userID, ok := req.Context().Value(middleware.UserIDKey{}).(string)
+	if !ok {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.createAndAddID(req.Context(), requestModel.URL, userID)
 	if err != nil {
 		if errors.Is(err, ErrOriginalURLAlreadyExists) {
 			h.sendJSONShortURL(res, id, http.StatusConflict)
@@ -179,7 +284,7 @@ func (h *Handler) formatShortURL(id string) string {
 	return fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)
 }
 
-func (h *Handler) createAndAddID(ctx context.Context, URL string) (string, error) {
+func (h *Handler) createAndAddID(ctx context.Context, URL string, userID string) (string, error) {
 	id, err := shortener.CreateID(URL)
 	if err != nil {
 		return "", err
@@ -190,6 +295,7 @@ func (h *Handler) createAndAddID(ctx context.Context, URL string) (string, error
 			err := h.storage.Add(entities.URL{
 				ShortURL:    id,
 				OriginalURL: URL,
+				UserID:      userID,
 			})
 			if err != nil {
 				return "", err

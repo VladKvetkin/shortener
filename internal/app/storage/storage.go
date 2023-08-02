@@ -13,11 +13,13 @@ var (
 )
 
 type Storage interface {
-	ReadByID(context.Context, string) (string, error)
+	ReadByID(context.Context, string) (entities.URL, error)
 	Add(entities.URL) error
 	Ping() error
-	AddBatch([]entities.URL) error
+	AddBatch(context.Context, []entities.URL) error
+	DeleteBatch(context.Context, []string, string) error
 	Close() error
+	GetUserURLs(context.Context, string) ([]entities.URL, error)
 }
 
 type MemStorage struct {
@@ -41,18 +43,33 @@ func newMemStorage(persister Persister) Storage {
 	return storage
 }
 
-func (s *MemStorage) ReadByID(ctx context.Context, id string) (string, error) {
-	url, ok := s.storage[id]
-	if !ok {
-		return "", ErrIDNotExists
-	}
-
-	return url, nil
+func (s *MemStorage) GetUserURLs(ctx context.Context, userID string) ([]entities.URL, error) {
+	return nil, nil
 }
 
-func (s *MemStorage) AddBatch(urls []entities.URL) error {
+func (s *MemStorage) ReadByID(ctx context.Context, id string) (entities.URL, error) {
+	url, ok := s.storage[id]
+	if !ok {
+		return entities.URL{}, ErrIDNotExists
+	}
+
+	return entities.URL{
+		ShortURL:    id,
+		OriginalURL: url,
+	}, nil
+}
+
+func (s *MemStorage) AddBatch(ctx context.Context, urls []entities.URL) error {
 	for _, url := range urls {
 		s.Add(url)
+	}
+
+	return nil
+}
+
+func (s *MemStorage) DeleteBatch(ctx context.Context, shortURLs []string, userID string) error {
+	for _, shortURL := range shortURLs {
+		delete(s.storage, shortURL)
 	}
 
 	return nil
