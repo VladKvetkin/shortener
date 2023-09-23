@@ -1,3 +1,5 @@
+// В пакете handler реализованы обработчики HTTP-запросов.
+
 package handler
 
 import (
@@ -8,24 +10,28 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-chi/chi"
+
 	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/VladKvetkin/shortener/internal/app/middleware"
 	"github.com/VladKvetkin/shortener/internal/app/models"
 	"github.com/VladKvetkin/shortener/internal/app/shortener"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
-	"github.com/go-chi/chi"
 )
 
 var (
+	// ErrOriginalURLAlreadyExists - ошибка, которая означает, что оригинальный URL уже существует в базе данных.
 	ErrOriginalURLAlreadyExists = errors.New("original URL already exists")
 )
 
+// Handler - структура обработчика HTTP-запросов.
 type Handler struct {
 	storage storage.Storage
 	config  config.Config
 }
 
+// NewHandler – конструктор Handler.
 func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	return &Handler{
 		config:  config,
@@ -33,6 +39,7 @@ func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	}
 }
 
+// DeleteUserUrlsHandler – функция-обработчик, которая удаляет сокращенные ссылки пользователя.
 func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Request) {
 	var requestModel models.APIUserDeleteURLRequest
 
@@ -42,9 +49,14 @@ func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	jsonDecoder := json.NewDecoder(req.Body)
+	body, err := io.ReadAll(req.Body)
 
-	if err := jsonDecoder.Decode(&requestModel); err != nil {
+	if err != nil {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.Unmarshal(body, &requestModel); err != nil {
 		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
 		return
 	}
@@ -69,6 +81,7 @@ func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Reque
 	res.WriteHeader(http.StatusAccepted)
 }
 
+// GetUserUrlsHandler – функция-обработчик, которая возвращает сокращенные и оригинальные ссылки пользователя в формате JSON.
 func (h *Handler) GetUserUrlsHandler(res http.ResponseWriter, req *http.Request) {
 	_, err := req.Cookie(middleware.TokenCookieName)
 	if err != nil {
@@ -114,6 +127,7 @@ func (h *Handler) GetUserUrlsHandler(res http.ResponseWriter, req *http.Request)
 	}
 }
 
+// PingHandler – функция-обработчик, которая проверяет работу базы данных.
 func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 	err := h.storage.Ping()
 	if err != nil {
@@ -125,6 +139,7 @@ func (h *Handler) PingHandler(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
+// GetHandler – функция-обработчик, которая перенаправляет клиента по оригинальной ссылке, используя сокращенную ссылку.
 func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	id := chi.URLParam(req, "id")
 	if id == "" {
@@ -147,6 +162,8 @@ func (h *Handler) GetHandler(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// PostHandler – функция-обработчик, которая добавляет в базу данных новую сокращенную ссылку.
+// Если сокращенная ссылка уже есть в базе данных, то возвращает статус http.StatusConflict.
 func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 
@@ -185,6 +202,7 @@ func (h *Handler) PostHandler(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(h.formatShortURL(id)))
 }
 
+// APIShortenBatchHandler – функция-обработчик, которая добавляет в базу данных массив сокращенных ссылок.
 func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Request) {
 	var requestModel []models.APIShortenBatchRequest
 
@@ -245,12 +263,19 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 	}
 }
 
+// APIShortenBatchHandler – функция-обработчик, которая добавляет в базу данных сокращенную ссылку.
+// Отличие от PostHandler заключается в том, что в HTTP-запросе ожидается JSON с оригинальной ссылкой.
 func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) {
 	var requestModel models.APIShortenRequest
 
-	jsonDecoder := json.NewDecoder(req.Body)
+	body, err := io.ReadAll(req.Body)
 
-	if err := jsonDecoder.Decode(&requestModel); err != nil {
+	if err != nil {
+		http.Error(res, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.Unmarshal(body, &requestModel); err != nil {
 		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
 		return
 	}

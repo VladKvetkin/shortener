@@ -30,6 +30,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode
 }
 
+// Logger - функция, которая логгирует HTTP-запросы и HTTP-ответы.
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		start := time.Now()

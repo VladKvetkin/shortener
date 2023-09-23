@@ -1,20 +1,27 @@
+// Пакет router отвечает за маршрутизацию в приложении.
+
 package router
 
 import (
 	"compress/gzip"
 	"net/http"
 
-	"github.com/VladKvetkin/shortener/internal/app/handler"
-	"github.com/VladKvetkin/shortener/internal/app/middleware"
 	"github.com/go-chi/chi"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
+
+	"github.com/VladKvetkin/shortener/internal/app/handler"
+	"github.com/VladKvetkin/shortener/internal/app/middleware"
 )
 
+// Router - структура маршрутизатора.
 type Router struct {
+	// Router - контроллер из пакета github.com/go-chi/chi.
 	Router  *chi.Mux
 	handler *handler.Handler
 }
 
+// NewRouter - конструктор Router.
+// Задает middleware и маршруты в приложении.
 func NewRouter(handler *handler.Handler) *Router {
 	chiRouter := chi.NewRouter()
 
@@ -27,7 +34,7 @@ func NewRouter(handler *handler.Handler) *Router {
 		middleware.DecompressBodyReader,
 		middleware.JWTCookie,
 		middleware.Logger,
-		chiMiddleware.Compress(gzip.BestCompression, "application/json", "text/html"),
+		chiMiddleware.Compress(gzip.BestSpeed, "application/json", "text/html"),
 	)
 
 	chiRouter.Route("/", func(r chi.Router) {

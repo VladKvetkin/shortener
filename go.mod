@@ -7,6 +7,8 @@ require (
 	github.com/stretchr/testify v1.8.4
 )
 
+require github.com/golang/mock v1.6.0 // indirect
+
 require (
 	github.com/caarlos0/env/v8 v8.0.0
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -1,3 +1,5 @@
+// Пакет shortener отвечает за генерацию сокращенной ссылки.
+
 package shortener
 
 import (
@@ -5,6 +7,7 @@ import (
 	"encoding/base64"
 )
 
+// CreateID - функция, которая сокращает url.
 func CreateID(url string) (string, error) {
 	hasher := sha256.New()
 	if _, err := hasher.Write([]byte(url)); err != nil {

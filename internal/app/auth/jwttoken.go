@@ -1,3 +1,5 @@
+// Пакет auth отвечает за аутентификацию через JWT-токен в приложении.
+
 package auth
 
 import (
@@ -8,8 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type JwtTokenBuilder struct{}
-
 type claims struct {
 	jwt.RegisteredClaims
 	UserID string
@@ -18,7 +18,8 @@ type claims struct {
 const secretKey = "testsecretkey"
 const tokenExp = time.Hour * 3
 
-func (jwtb *JwtTokenBuilder) BuildJWTToken() (string, error) {
+// BuildJWTToken - генерирует JWT-токен, который содержит идентификатор пользователя.
+func BuildJWTToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExp)),
@@ -34,7 +35,8 @@ func (jwtb *JwtTokenBuilder) BuildJWTToken() (string, error) {
 	return tokenString, nil
 }
 
-func (jwtb *JwtTokenBuilder) GetUserID(tokenString string) (string, error) {
+// GetUserID - получает из tokenString идентификатор пользователя.
+func GetUserID(tokenString string) (string, error) {
 	claims := &claims{}
 
 	token, err := jwt.ParseWithClaims(
