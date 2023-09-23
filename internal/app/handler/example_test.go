@@ -10,7 +10,7 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 )
 
-func ExampleAPIShortenHandler() {
+func ExampleHandler_APIShortenHandler() {
 	defaultStorage, err := storage.GetStorage(config.Config{})
 	if err != nil {
 		panic(err)
@@ -30,7 +30,7 @@ func ExampleAPIShortenHandler() {
 	handler.APIShortenHandler(recorder, request)
 }
 
-func ExamplePostHandler() {
+func ExampleHandler_PostHandler() {
 	defaultStorage, err := storage.GetStorage(config.Config{})
 	if err != nil {
 		panic(err)
@@ -50,7 +50,7 @@ func ExamplePostHandler() {
 	handler.PostHandler(recorder, request)
 }
 
-func ExampleGetHandler() {
+func ExampleHandler_GetHandler() {
 	defaultStorage, err := storage.GetStorage(config.Config{})
 	if err != nil {
 		panic(err)

@@ -245,7 +245,8 @@ func BenchmarkRouterPostHandler(b *testing.B) {
 
 				router.Router.ServeHTTP(recorder, request)
 
-				recorder.Result()
+				result := recorder.Result()
+				result.Body.Close()
 			}
 		})
 	}
@@ -470,7 +471,8 @@ func BenchmarkRouterGetHandler(b *testing.B) {
 
 				router.Router.ServeHTTP(recorder, request)
 
-				recorder.Result()
+				result := recorder.Result()
+				result.Body.Close()
 			}
 		})
 	}
@@ -683,7 +685,8 @@ func BenchmarkRouterAPIShortenHandler(b *testing.B) {
 
 				router.Router.ServeHTTP(recorder, request)
 
-				recorder.Result()
+				result := recorder.Result()
+				result.Body.Close()
 			}
 		})
 	}
@@ -778,6 +781,7 @@ func TestRouterDeleteUserUrlsHandler(t *testing.T) {
 			router.Router.ServeHTTP(recorder, request)
 
 			result := recorder.Result()
+			result.Body.Close()
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 		})
@@ -862,7 +866,8 @@ func BenchmarkRouterDeleteUserUrlsHandler(b *testing.B) {
 
 				router.Router.ServeHTTP(recorder, request)
 
-				recorder.Result()
+				result := recorder.Result()
+				result.Body.Close()
 			}
 		})
 	}
