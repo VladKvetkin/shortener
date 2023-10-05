@@ -5,16 +5,21 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/google/uuid"
+
 	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/VladKvetkin/shortener/internal/app/models"
-	"github.com/google/uuid"
 )
 
+// Persister - интерфейс сохранения состояния базы данных.
 type Persister interface {
+	// Restore - функция, которая восстанавливает состояние базы данных.
 	Restore(storage *MemStorage) error
+	// Save - функция, которая сохраняет состояние базы данных.
 	Save(entities.URL) error
 }
 
+// FilePersister - структура сохранения состояния базы данных в файл.
 type FilePersister struct {
 	filePath string
 }

@@ -1,3 +1,6 @@
+// Пакет config отвечает за конфигурацию приложения.
+// Конфигурировать приложение можно как флагами в командной строке, так и через переменные окружения.
+
 package config
 
 import (
@@ -8,13 +11,19 @@ import (
 	"github.com/caarlos0/env/v8"
 )
 
+// Config - структура конфига, содержит в себе настройки приложения.
 type Config struct {
-	Address             string `env:"SERVER_ADDRESS"`
+	// Address - адрес, на котором запускается приложение.
+	Address string `env:"SERVER_ADDRESS"`
+	// BaseShortURLAddress - адрес, который используется для генерации сокращенной ссылки.
 	BaseShortURLAddress string `env:"BASE_URL"`
-	FileStoragePath     string `env:"FILE_STORAGE_PATH"`
-	DatabaseDSN         string `env:"DATABASE_DSN"`
+	// FileStoragePath - путь к файлу, который используется для сохранения сокращенных ссылок.
+	FileStoragePath string `env:"FILE_STORAGE_PATH"`
+	// DatabaseDSN - DSN для базы данных.
+	DatabaseDSN string `env:"DATABASE_DSN"`
 }
 
+// NewConfig – конструктор Config.
 func NewConfig() (Config, error) {
 	config := Config{
 		Address:             "localhost:8080",

@@ -1,27 +1,40 @@
+// Пакет storage отвечает за работу с базой данных в приложении.
+
 package storage
 
 import (
 	"context"
 	"errors"
 
-	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"go.uber.org/zap"
+
+	"github.com/VladKvetkin/shortener/internal/app/entities"
 )
 
 var (
+	// ErrIDNotExists - ошибка, которая означает, что сокращенная ссылка не найдена в базе данных.
 	ErrIDNotExists = errors.New("id not exists")
 )
 
+// Storage - интерфейс базы данных приложения.
 type Storage interface {
+	// ReadByID - функция для получения entities.URL из базы данных.
 	ReadByID(context.Context, string) (entities.URL, error)
+	// Add - функция для добавления entities.URL в базу данных.
 	Add(entities.URL) error
+	// Ping - функция для проверки работоспособности базы данных.
 	Ping() error
+	// AddBatch - функция для добавления массива entities.URL в базу данных.
 	AddBatch(context.Context, []entities.URL) error
+	// DeleteBatch - функция для удаления сокращенных ссылок из базы данных.
 	DeleteBatch(context.Context, []string, string) error
+	// Close - функция для закрытия соединения с базой данных.
 	Close() error
+	// ReadByID - функция для получения массива entities.URL из базы данных.
 	GetUserURLs(context.Context, string) ([]entities.URL, error)
 }
 
+// MemStorage - структура базы данных, которая хранит данные в мапе.
 type MemStorage struct {
 	storage   map[string]string
 	persister Persister

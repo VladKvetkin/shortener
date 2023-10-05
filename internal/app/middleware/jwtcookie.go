@@ -11,25 +11,24 @@ const TokenCookieName = "token"
 
 type UserIDKey struct{}
 
+// JWTCookie - функция, которая проверяет наличие JWT-токена, и если его нет, то генерирует его и записывает в куки.
 func JWTCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		var token string
 
-		jwtTokenBuilder := auth.JwtTokenBuilder{}
-
 		tokenCookie, err := req.Cookie(TokenCookieName)
 
 		if err != nil {
-			token, err = jwtTokenBuilder.BuildJWTToken()
+			token, err = auth.BuildJWTToken()
 			if err != nil {
 				http.Error(resp, "Cannot build JWT for user", http.StatusBadRequest)
 				return
 			}
 		} else {
 			token = tokenCookie.Value
-			_, err := jwtTokenBuilder.GetUserID(token)
+			_, err := auth.GetUserID(token)
 			if err != nil {
-				token, err = jwtTokenBuilder.BuildJWTToken()
+				token, err = auth.BuildJWTToken()
 				if err != nil {
 					http.Error(resp, "Cannot build JWT for user", http.StatusBadRequest)
 					return
@@ -37,7 +36,7 @@ func JWTCookie(next http.Handler) http.Handler {
 			}
 		}
 
-		userID, err := jwtTokenBuilder.GetUserID(token)
+		userID, err := auth.GetUserID(token)
 		if err != nil {
 			http.Error(resp, "Invalid JWT", http.StatusBadRequest)
 			return

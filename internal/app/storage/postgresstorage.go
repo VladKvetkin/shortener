@@ -3,12 +3,14 @@ package storage
 import (
 	"context"
 
-	"github.com/VladKvetkin/shortener/internal/app/entities"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+
+	"github.com/VladKvetkin/shortener/internal/app/entities"
 )
 
+// PostgresStorage - структура базы данных PostgreSQL
 type PostgresStorage struct {
 	db *sqlx.DB
 }

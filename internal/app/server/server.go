@@ -1,3 +1,5 @@
+// Пакет server отвечает за сервер приложения.
+
 package server
 
 import (
@@ -6,11 +8,13 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/config"
 )
 
+// Server - структура сервера.
 type Server struct {
 	config config.Config
 	router http.Handler
 }
 
+// NewServer - конструктор Server.
 func NewServer(config config.Config, router http.Handler) *Server {
 	return &Server{
 		config: config,
@@ -18,6 +22,7 @@ func NewServer(config config.Config, router http.Handler) *Server {
 	}
 }
 
+// Start - функция, которая запускает сервер.
 func (s *Server) Start() error {
 	return http.ListenAndServe(s.config.Address, s.router)
 }

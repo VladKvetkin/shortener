@@ -1,14 +1,14 @@
 package storage
 
 import (
-	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+
+	"github.com/VladKvetkin/shortener/internal/app/config"
 )
 
-type StorageFactory struct{}
-
-func (sf *StorageFactory) GetStorage(config config.Config) (Storage, error) {
+// GetStorage - функция, которая возвращает Storage в зависимости от конфигурации приложения.
+func GetStorage(config config.Config) (Storage, error) {
 	if config.DatabaseDSN != "" {
 		db, err := sqlx.Connect("postgres", config.DatabaseDSN)
 		if err != nil {

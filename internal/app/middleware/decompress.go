@@ -1,3 +1,5 @@
+// Пакет middleware используется для реализаций middleware-функций.
+
 package middleware
 
 import (
@@ -36,6 +38,7 @@ func (c decompressReader) Close() error {
 	return c.zr.Close()
 }
 
+// DecompressBodyReader - функция, которая декодирует тело запроса, если в заголовке запроса Content-Encoding значение gzip.
 func DecompressBodyReader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		contentEncoding := req.Header.Get("Content-Encoding")

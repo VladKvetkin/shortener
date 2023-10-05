@@ -3,12 +3,13 @@ package main
 import (
 	_ "github.com/lib/pq"
 
+	"go.uber.org/zap"
+
 	"github.com/VladKvetkin/shortener/internal/app/config"
 	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/server"
 	"github.com/VladKvetkin/shortener/internal/app/storage"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -17,9 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	storageFactory := storage.StorageFactory{}
-
-	storage, err := storageFactory.GetStorage(config)
+	storage, err := storage.GetStorage(config)
 	if err != nil {
 		panic(err)
 	}
