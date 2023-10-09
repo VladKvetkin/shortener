@@ -1,4 +1,4 @@
-// Пакет middleware используется для реализаций middleware-функций.
+// Package middleware используется для реализаций middleware-функций.
 
 package middleware
 
