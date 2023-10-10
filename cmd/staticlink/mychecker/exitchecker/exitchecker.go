@@ -21,20 +21,29 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		ast.Inspect(file, func(node ast.Node) bool {
-			switch x := node.(type) {
-			case *ast.CallExpr:
-				selexpr, ok := x.Fun.(*ast.SelectorExpr)
-				if !ok {
-					return true
-				}
-				ident, ok := selexpr.X.(*ast.Ident)
-				if !ok || ident.Name != "os" {
-					return true
-				}
-				if selexpr.Sel.Name == "Exit" {
-					pass.Reportf(selexpr.Pos(), "call os.Exit in main package")
+			if funcDecl, ok := node.(*ast.FuncDecl); ok {
+				if funcDecl.Name.Name == "main" {
+					for _, stmt := range funcDecl.Body.List {
+						if callExpr, isCallExpr := stmt.(*ast.ExprStmt); isCallExpr {
+							switch x := callExpr.X.(type) {
+							case *ast.CallExpr:
+								selexpr, ok := x.Fun.(*ast.SelectorExpr)
+								if !ok {
+									return true
+								}
+								ident, ok := selexpr.X.(*ast.Ident)
+								if !ok || ident.Name != "os" {
+									return true
+								}
+								if selexpr.Sel.Name == "Exit" {
+									pass.Reportf(selexpr.Pos(), "call os.Exit in main package")
+								}
+							}
+						}
+					}
 				}
 			}
+
 			return true
 		})
 	}
