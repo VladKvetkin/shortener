@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	_ "github.com/lib/pq"
 
 	"go.uber.org/zap"
@@ -12,7 +14,17 @@ import (
 	"github.com/VladKvetkin/shortener/internal/app/storage"
 )
 
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
+)
+
 func main() {
+	fmt.Printf("Build version: %v\n", buildVersion)
+	fmt.Printf("Build date: %v\n", buildDate)
+	fmt.Printf("Build commit: %v\n", buildCommit)
+
 	config, err := config.NewConfig()
 	if err != nil {
 		panic(err)

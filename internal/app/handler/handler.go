@@ -1,4 +1,4 @@
-// В пакете handler реализованы обработчики HTTP-запросов.
+// Package handler реализованы обработчики HTTP-запросов.
 
 package handler
 
@@ -49,14 +49,9 @@ func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	body, err := io.ReadAll(req.Body)
+	jsonDecoder := json.NewDecoder(req.Body)
 
-	if err != nil {
-		http.Error(res, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	if err := json.Unmarshal(body, &requestModel); err != nil {
+	if err := jsonDecoder.Decode(&requestModel); err != nil {
 		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
 		return
 	}
@@ -268,14 +263,9 @@ func (h *Handler) APIShortenBatchHandler(res http.ResponseWriter, req *http.Requ
 func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) {
 	var requestModel models.APIShortenRequest
 
-	body, err := io.ReadAll(req.Body)
+	jsonDecoder := json.NewDecoder(req.Body)
 
-	if err != nil {
-		http.Error(res, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	if err := json.Unmarshal(body, &requestModel); err != nil {
+	if err := jsonDecoder.Decode(&requestModel); err != nil {
 		http.Error(res, "Cannot decode request JSON body", http.StatusBadRequest)
 		return
 	}
