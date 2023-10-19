@@ -44,7 +44,7 @@ func main() {
 	router := router.NewRouter(handler.NewHandler(storage, config))
 	server := server.NewServer(config, router.Router)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
 	eg, ctx := errgroup.WithContext(ctx)
