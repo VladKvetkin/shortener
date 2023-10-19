@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os/signal"
 	"syscall"
 
@@ -44,7 +46,7 @@ func main() {
 	router := router.NewRouter(handler.NewHandler(storage, config))
 	server := server.NewServer(config, router.Router)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT, syscall.SIGQUIT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -53,6 +55,10 @@ func main() {
 		zap.L().Info("Running server", zap.String("Address", config.Address))
 
 		if err = server.Start(); err != nil {
+			if errors.Is(err, http.ErrServerClosed) {
+				return nil
+			}
+
 			zap.L().Info("error starting server", zap.Error(err))
 			return err
 		}
