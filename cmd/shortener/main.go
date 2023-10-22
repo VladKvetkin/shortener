@@ -43,7 +43,8 @@ func main() {
 
 	defer storage.Close()
 
-	router := router.NewRouter(handler.NewHandler(storage, config))
+	handler := handler.NewHandler(storage, config)
+	router := router.NewRouter(handler)
 	server := server.NewServer(config, router.Router)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
@@ -67,6 +68,11 @@ func main() {
 	})
 
 	<-ctx.Done()
+
+	eg.Go(func() error {
+		handler.DeleteUrlsWg.Wait()
+		return nil
+	})
 
 	eg.Go(func() error {
 		if err := server.Stop(); err != nil {
