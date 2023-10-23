@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/go-chi/chi"
 
@@ -27,8 +28,9 @@ var (
 
 // Handler - структура обработчика HTTP-запросов.
 type Handler struct {
-	storage storage.Storage
-	config  config.Config
+	storage      storage.Storage
+	config       config.Config
+	DeleteUrlsWg sync.WaitGroup
 }
 
 // NewHandler – конструктор Handler.
@@ -63,7 +65,11 @@ func (h *Handler) DeleteUserUrlsHandler(res http.ResponseWriter, req *http.Reque
 
 	ctx := context.Background()
 
+	h.DeleteUrlsWg.Add(1)
+
 	go func(ctx context.Context) {
+		defer h.DeleteUrlsWg.Done()
+
 		select {
 		case <-ctx.Done():
 			return

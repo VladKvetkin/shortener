@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"os/signal"
+	"syscall"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/sync/errgroup"
 
 	"go.uber.org/zap"
 
@@ -37,13 +43,46 @@ func main() {
 
 	defer storage.Close()
 
-	router := router.NewRouter(handler.NewHandler(storage, config))
+	handler := handler.NewHandler(storage, config)
+	router := router.NewRouter(handler)
 	server := server.NewServer(config, router.Router)
 
-	zap.L().Info("Running server", zap.String("Address", config.Address))
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
 
-	err = server.Start()
-	if err != nil {
+	eg, ctx := errgroup.WithContext(ctx)
+
+	eg.Go(func() error {
+		zap.L().Info("Running server", zap.String("Address", config.Address))
+
+		if err = server.Start(); err != nil {
+			if errors.Is(err, http.ErrServerClosed) {
+				return nil
+			}
+
+			zap.L().Info("error starting server", zap.Error(err))
+			return err
+		}
+
+		return nil
+	})
+
+	<-ctx.Done()
+
+	eg.Go(func() error {
+		handler.DeleteUrlsWg.Wait()
+		return nil
+	})
+
+	eg.Go(func() error {
+		if err := server.Stop(); err != nil {
+			zap.L().Info("error stopping server", zap.Error(err))
+			return err
+		}
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
 		panic(err)
 	}
 }
