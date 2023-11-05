@@ -55,7 +55,7 @@ func NewRouter(handler *handler.Handler) *Router {
 		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.IpChecker(handler.Config.TrustedSubnet))
+			r.Use(middleware.IPChecker(handler.Config.TrustedSubnet))
 
 			r.Get("/api/internal/stats", http.HandlerFunc(handler.GetInternalStats))
 		})

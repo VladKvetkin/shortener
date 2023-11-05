@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func IpChecker(trustedSubnet string) func(next http.Handler) http.Handler {
+func IPChecker(trustedSubnet string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if trustedSubnet == "" {
