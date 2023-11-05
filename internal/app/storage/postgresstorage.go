@@ -28,6 +28,28 @@ func newPostgresStorage(db *sqlx.DB) (Storage, error) {
 	return storage, nil
 }
 
+func (s *PostgresStorage) GetURLsCount(ctx context.Context) (int, error) {
+	var result int
+
+	err := s.db.SelectContext(ctx, &result, "SELECT COUNT(short_url) FROM url")
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
+}
+
+func (s *PostgresStorage) GetUsersCount(ctx context.Context) (int, error) {
+	var result int
+
+	err := s.db.SelectContext(ctx, &result, "SELECT COUNT(user_id) FROM url")
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
+}
+
 func (s *PostgresStorage) GetUserURLs(ctx context.Context, userID string) ([]entities.URL, error) {
 	var userURLs []entities.URL
 

@@ -32,24 +32,33 @@ func NewRouter(handler *handler.Handler) *Router {
 
 	chiRouter.Use(
 		middleware.DecompressBodyReader,
-		middleware.JWTCookie,
 		middleware.Logger,
 		chiMiddleware.Compress(gzip.BestSpeed, "application/json", "text/html"),
 	)
 
 	chiRouter.Route("/", func(r chi.Router) {
-		r.Post("/", http.HandlerFunc(handler.PostHandler))
-		r.Route("/api", func(r chi.Router) {
-			r.Route("/shorten", func(r chi.Router) {
-				r.Post("/", http.HandlerFunc(handler.APIShortenHandler))
-				r.Post("/batch", http.HandlerFunc(handler.APIShortenBatchHandler))
-			})
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.JWTCookie)
 
-			r.Get("/user/urls", http.HandlerFunc(handler.GetUserUrlsHandler))
-			r.Delete("/user/urls", http.HandlerFunc(handler.DeleteUserUrlsHandler))
+			r.Post("/", http.HandlerFunc(handler.PostHandler))
+			r.Route("/api", func(r chi.Router) {
+				r.Route("/shorten", func(r chi.Router) {
+					r.Post("/", http.HandlerFunc(handler.APIShortenHandler))
+					r.Post("/batch", http.HandlerFunc(handler.APIShortenBatchHandler))
+				})
+
+				r.Get("/user/urls", http.HandlerFunc(handler.GetUserUrlsHandler))
+				r.Delete("/user/urls", http.HandlerFunc(handler.DeleteUserUrlsHandler))
+			})
+			r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
+			r.Get("/ping", http.HandlerFunc(handler.PingHandler))
 		})
-		r.Get("/{id}", http.HandlerFunc(handler.GetHandler))
-		r.Get("/ping", http.HandlerFunc(handler.PingHandler))
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.IpChecker(handler.Config.TrustedSubnet))
+
+			r.Get("/api/internal/stats", http.HandlerFunc(handler.GetInternalStats))
+		})
 	})
 
 	return router

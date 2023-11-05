@@ -39,3 +39,9 @@ type APIUserURLResponse struct {
 
 // APIUserDeleteURLRequest - тип, который описывает тело запроса для обработчика APIUserDeleteURLHandler.
 type APIUserDeleteURLRequest []string
+
+// GetInternalStatsResponse - структура, которая описывает тело ответа обработчика GetInternalStats.
+type GetInternalStatsResponse struct {
+	URLs  int `json:"urls"`
+	Users int `json:"users"`
+}

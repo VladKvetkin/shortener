@@ -29,6 +29,8 @@ type Config struct {
 	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 	// ConfigPath - путь к файлу JSON-конфигурации
 	ConfigPath string `env:"CONFIG"`
+	// TrustedSubnet - доверенная подсеть
+	TrustedSubnet string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 }
 
 // NewConfig – конструктор Config.
@@ -87,6 +89,7 @@ func (c *Config) parseFlags() {
 	flag.StringVar(&c.DatabaseDSN, "d", c.DatabaseDSN, "Database data source name")
 	flag.BoolVar(&c.EnableHTTPS, "s", c.EnableHTTPS, "Enable HTTPS")
 	flag.StringVar(&c.ConfigPath, "c", c.ConfigPath, "JSON config path")
+	flag.StringVar(&c.TrustedSubnet, "t", "", "trusted subnet")
 	flag.Parse()
 }
 
