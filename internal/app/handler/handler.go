@@ -29,15 +29,42 @@ var (
 // Handler - структура обработчика HTTP-запросов.
 type Handler struct {
 	storage      storage.Storage
-	config       config.Config
+	Config       config.Config
 	DeleteUrlsWg sync.WaitGroup
 }
 
 // NewHandler – конструктор Handler.
 func NewHandler(storage storage.Storage, config config.Config) *Handler {
 	return &Handler{
-		config:  config,
+		Config:  config,
 		storage: storage,
+	}
+}
+
+// GetInternalStats - функция-обработчик, которая возвращает кол-во сокращенных ссылок и пользователей сервиса
+func (h *Handler) GetInternalStats(res http.ResponseWriter, req *http.Request) {
+	urlsCount, err := h.storage.GetURLsCount(req.Context())
+	if err != nil {
+		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	usersCount, err := h.storage.GetUsersCount(req.Context())
+	if err != nil {
+		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	jsonEncoder := json.NewEncoder(res)
+	if err := jsonEncoder.Encode(&models.GetInternalStatsResponse{
+		URLs:  urlsCount,
+		Users: usersCount,
+	}); err != nil {
+		http.Error(res, "Cannot encode response JSON body", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -302,7 +329,7 @@ func (h *Handler) APIShortenHandler(res http.ResponseWriter, req *http.Request) 
 }
 
 func (h *Handler) formatShortURL(id string) string {
-	return fmt.Sprintf("%s/%s", h.config.BaseShortURLAddress, id)
+	return fmt.Sprintf("%s/%s", h.Config.BaseShortURLAddress, id)
 }
 
 func (h *Handler) createAndAddID(ctx context.Context, URL string, userID string) (string, error) {

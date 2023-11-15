@@ -8,9 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
-
 	entities "github.com/VladKvetkin/shortener/internal/app/entities"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockStorage is a mock of Storage interface.
@@ -92,6 +91,21 @@ func (mr *MockStorageMockRecorder) DeleteBatch(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBatch", reflect.TypeOf((*MockStorage)(nil).DeleteBatch), arg0, arg1, arg2)
 }
 
+// GetURLsCount mocks base method.
+func (m *MockStorage) GetURLsCount(arg0 context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetURLsCount", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetURLsCount indicates an expected call of GetURLsCount.
+func (mr *MockStorageMockRecorder) GetURLsCount(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetURLsCount", reflect.TypeOf((*MockStorage)(nil).GetURLsCount), arg0)
+}
+
 // GetUserURLs mocks base method.
 func (m *MockStorage) GetUserURLs(arg0 context.Context, arg1 string) ([]entities.URL, error) {
 	m.ctrl.T.Helper()
@@ -105,6 +119,21 @@ func (m *MockStorage) GetUserURLs(arg0 context.Context, arg1 string) ([]entities
 func (mr *MockStorageMockRecorder) GetUserURLs(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserURLs", reflect.TypeOf((*MockStorage)(nil).GetUserURLs), arg0, arg1)
+}
+
+// GetUsersCount mocks base method.
+func (m *MockStorage) GetUsersCount(arg0 context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersCount", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersCount indicates an expected call of GetUsersCount.
+func (mr *MockStorageMockRecorder) GetUsersCount(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersCount", reflect.TypeOf((*MockStorage)(nil).GetUsersCount), arg0)
 }
 
 // Ping mocks base method.

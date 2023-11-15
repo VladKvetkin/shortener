@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package grpchandlers;
+
+option go_package = "internal/grpchandlers";
+
+service ShortenerProto {
+  rpc Ping(PingRequest) returns(PingResponse);
+  rpc CreateShortURL(CreateShortURLRequest) returns(CreateShortURLResponse);
+  rpc CreateShortURLBatch(CreateShortURLBatchRequest) returns(CreateShortURLBatchResponse);
+  rpc GetOriginalURL(GetOriginalURLRequest) returns(GetOriginalURLResponse);
+  rpc GetUserURLs(GetUserURLsRequest) returns(GetUserURLsResponse);
+}
+
+message PingRequest {}
+
+message PingResponse {
+  string result = 1;
+}
+
+message CreateShortURLRequest {
+  string url = 1;
+  string user_id = 2;
+}
+
+message CreateShortURLResponse {
+  string short_url = 1;
+}
+
+message CreateShortURLBatchRequest {
+  repeated OriginalURLs urls = 1;
+  string user_id = 2;
+}
+
+message OriginalURLs {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+
+message CreateShortURLBatchResponse {
+  repeated ShortURLs urls = 1;
+}
+
+message ShortURLs {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+
+message GetOriginalURLRequest {
+  string short_url = 1;
+}
+
+message GetOriginalURLResponse {
+  string original_url = 1;
+}
+
+message GetUserURLsRequest {
+  string user_id = 1;
+}
+
+message GetUserURLsResponse {
+  repeated UserUrls urls = 1;
+}
+
+message UserUrls {
+  string short_url = 1;
+  string original_url = 2;
+}

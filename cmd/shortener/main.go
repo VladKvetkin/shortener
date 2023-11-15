@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/VladKvetkin/shortener/internal/app/config"
+	"github.com/VladKvetkin/shortener/internal/app/grpchandlers"
 	"github.com/VladKvetkin/shortener/internal/app/handler"
 	"github.com/VladKvetkin/shortener/internal/app/router"
 	"github.com/VladKvetkin/shortener/internal/app/server"
@@ -46,6 +47,7 @@ func main() {
 	handler := handler.NewHandler(storage, config)
 	router := router.NewRouter(handler)
 	server := server.NewServer(config, router.Router)
+	grpcServer := grpchandlers.NewServer(storage, config)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
@@ -67,6 +69,17 @@ func main() {
 		return nil
 	})
 
+	eg.Go(func() error {
+		zap.L().Info("Running grpc server")
+
+		if err = grpcServer.Start(); err != nil {
+			zap.L().Info("error starting grpc server", zap.Error(err))
+			return err
+		}
+
+		return nil
+	})
+
 	<-ctx.Done()
 
 	eg.Go(func() error {
@@ -77,6 +90,14 @@ func main() {
 	eg.Go(func() error {
 		if err := server.Stop(); err != nil {
 			zap.L().Info("error stopping server", zap.Error(err))
+			return err
+		}
+		return nil
+	})
+
+	eg.Go(func() error {
+		if err := grpcServer.Stop(); err != nil {
+			zap.L().Info("error stopping grpc server", zap.Error(err))
 			return err
 		}
 		return nil

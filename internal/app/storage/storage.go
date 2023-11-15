@@ -30,8 +30,12 @@ type Storage interface {
 	DeleteBatch(context.Context, []string, string) error
 	// Close - функция для закрытия соединения с базой данных.
 	Close() error
-	// ReadByID - функция для получения массива entities.URL из базы данных.
+	// GetUserURLs - функция для получения массива entities.URL из базы данных.
 	GetUserURLs(context.Context, string) ([]entities.URL, error)
+	// GetURLsCount - функция для получения кол-ва сокращенных ссылок в базе данных.
+	GetURLsCount(context.Context) (int, error)
+	// GetUsersCount - функция для получения кол-ва пользователей в базе данных.
+	GetUsersCount(context.Context) (int, error)
 }
 
 // MemStorage - структура базы данных, которая хранит данные в мапе.
@@ -54,6 +58,14 @@ func newMemStorage(persister Persister) Storage {
 	}
 
 	return storage
+}
+
+func (s *MemStorage) GetURLsCount(context.Context) (int, error) {
+	return len(s.storage), nil
+}
+
+func (s *MemStorage) GetUsersCount(context.Context) (int, error) {
+	return 0, nil
 }
 
 func (s *MemStorage) GetUserURLs(ctx context.Context, userID string) ([]entities.URL, error) {
