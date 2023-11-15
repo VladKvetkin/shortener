@@ -42,7 +42,7 @@ func (s *PostgresStorage) GetURLsCount(ctx context.Context) (int, error) {
 func (s *PostgresStorage) GetUsersCount(ctx context.Context) (int, error) {
 	var result int
 
-	err := s.db.SelectContext(ctx, &result, "SELECT COUNT(user_id) FROM url")
+	err := s.db.SelectContext(ctx, &result, "SELECT COUNT(DISTINCT user_id) FROM url")
 	if err != nil {
 		return 0, err
 	}
